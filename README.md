@@ -4,64 +4,33 @@ A simple Discord bot built with Python and `discord.py`, developed by Momo. This
 
 ## Features ✨
 
-- **General Commands**
-  - `$hello`: Get a friendly greeting! 👋
-  - `$roll`: Roll a 6-sided dice 🎲
-  - `$me`: View your user information (ID, Join Date, Avatar) 👤
-  - `$ping`: Check the bot's latency with witty responses ⚡
+- **Fun & Social**: Greet the bot and get friendly responses.
+- **Utilities**: Roll dice and check latency.
+- **Information**: Get details about the bot and your own user profile.
 
-- **Bot Information**
-  - `$whomadeyou`: Find out who created the bot 🛠️
-  - `$whoareyou`: Learn about the bot's purpose 🤖
-  - `$botinfo`: Get the link to the GitHub repository 🔗
-  - `$help`: Display a list of all available commands 📜
+## Bot Information ℹ️
 
-## Prerequisites 📋
+- **Developer**: Momo
+- **Library**: discord.py
+- **Language**: Python 3.8+
 
-- Python 3.8 or higher
-- A Discord Bot Token (from the [Discord Developer Portal](https://discord.com/developers/applications))
+## Commands 🛠️
 
-## Installation 🚀
+Here are some of the available commands:
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Mohit-Mano06/NewBot.git
-   cd NewBot
-   ```
+### General
+- `$hello`: Get a friendly greeting! �
+- `$roll`: Roll a 6-sided dice 🎲
+- `$ping`: Check the bot's latency with witty responses ⚡
 
-2. **Install dependencies**
-   ```bash
-   pip install discord.py
-   ```
+### Information
+- `$whomadeyou`: Find out who created the bot 🛠️
+- `$whoareyou`: Learn about the bot's purpose 🤖
+- `$botinfo`: View technical stats about the bot �
+- `$whoami`: View your user information (ID, Join Date, Avatar) 👤
+- `$help`: Display a list of all available commands 📜
 
-3. **Configuration**
-   - Rename `config_example.py` to `config.py`:
-     - On Windows: `ren config_example.py config.py`
-     - On Linux/Mac: `mv config_example.py config.py`
-   - Open `config.py` and replace `DISCORD_BOT_TOKEN_HERE` with your actual bot token.
+## Upcoming Features 🔮
 
-   ```python
-   # config.py
-   TOKEN = "your_actual_bot_token_here"
-   ```
-
-## Usage 🎮
-
-Run the bot using Python:
-
-```bash
-python bot.py
-```
-
-Once online, use the prefix `$` to interact with the bot (e.g., `$hello`, `$ping`).
-
-## Contributing 🤝
-
-Contributions are welcome! Feel free to open issues or submit pull requests to improve the bot.
-
-## Author ✍️
-
-- **Momo** - *Creator & Developer*
-
----
-*Created with ❤️ by Momo*
+- Reminders (with Voice Channel Integration)
+- Notes
