@@ -1,23 +1,32 @@
 import discord
 from discord.ext import commands
-import random 
+import random
 
 #Logging bot commands
 from logger import send_log 
 
-
-
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
+# Load environment variables & error handling for token/env
+try:
+    from dotenv import load_dotenv  # Remove: import dotenv
+    load_dotenv()
+    print("Loaded .env file")
+    print(f"Current directory: {os.getcwd()}")
+    print(f".env file exists: {os.path.exists('.env')}")
+except ImportError:
+    print("python-dotenv not installed, relying on system environment variables")
+
 TOKEN = os.getenv("TOKEN")
+print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
+print(f"Token length: {len(TOKEN) if TOKEN else 'N/A'}")
 
-
-
+# Check if TOKEN exists
+if not TOKEN:
+    raise ValueError("DISCORD_TOKEN not found! Check your .env file or environment variables")
 
 intents = discord.Intents.default()
 intents.message_content = True
-
 
 ALLOWED_CHANNEL_ID = 1469612261827022949
 
@@ -25,12 +34,9 @@ bot = commands.Bot(
     command_prefix="$", 
     intents=intents,
     help_command=None
-    )
-    
+)
 
 ## ===== STARTUP ===== ##
-
-
 
 @bot.event
 async def on_ready():
@@ -41,6 +47,7 @@ async def on_ready():
         await channel.send("🟢 **Bot is online**")
 
     await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
+
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.social")
@@ -48,10 +55,6 @@ async def setup_hook():
     await bot.load_extension("cogs.info")
     await bot.load_extension("cogs.hidden")
     await bot.load_extension("cogs.reminder")
-
-
-
-
 
 ## ===== HELP ===== ##
 
@@ -78,7 +81,7 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-#===== ERROR HANDLING =====##
+## ===== ERROR HANDLING ===== ##
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -95,8 +98,6 @@ async def on_command_error(ctx, error):
         return
 
     raise error  # real bugs only
-
-
 
 ## ==== TOKEN ==== ##
 bot.run(TOKEN)
