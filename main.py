@@ -38,6 +38,10 @@ async def on_ready():
 
     channel = bot.get_channel(ALLOWED_CHANNEL_ID)
     if channel:
+        async for message in channel.history(limit=10):
+            if message.author == bot.user and "Bot is online" in message.content:
+                await message.delete()
+
         await channel.send("🟢 **Bot is online**")
 
     await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
