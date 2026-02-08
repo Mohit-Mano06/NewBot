@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random
+import datetime
 
 #Logging bot commands
 from logger import send_log 
@@ -40,6 +41,7 @@ bot = commands.Bot(
 
 @bot.event
 async def on_ready():
+    bot.start_time = datetime.datetime.utcnow()
     print(f"Logged in as {bot.user}")
 
     channel = bot.get_channel(ALLOWED_CHANNEL_ID)
