@@ -1,1 +1,1 @@
-TOKEN = "DISCORD_BOT_TOKEN_HERE"
+TOKEN = "insert_your_token_here"
