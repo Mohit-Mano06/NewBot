@@ -2,6 +2,11 @@ import discord
 from discord.ext import commands
 import random 
 
+#Logging bot commands
+from logger import send_log 
+
+
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -35,6 +40,7 @@ async def on_ready():
     if channel:
         await channel.send("🟢 **Bot is online**")
 
+    await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.social")
