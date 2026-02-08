@@ -9,9 +9,10 @@ class Hidden(commands.Cog):
         self.bot = bot
     
     @commands.command(hidden=True)
-    async def downtime(self,ctx):
+    async def offline(self,ctx):
         try:
             await ctx.message.delete()
+            await self.bot.change_presence(status=discord.Status.offline)
         except:
             pass
 

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import random
 import datetime
 
 #Logging bot commands
@@ -10,17 +9,19 @@ import os
 
 # Load environment variables & error handling for token/env
 try:
-    from dotenv import load_dotenv  # Remove: import dotenv
+    from dotenv import load_dotenv
     load_dotenv()
     print("Loaded .env file")
     print(f"Current directory: {os.getcwd()}")
     print(f".env file exists: {os.path.exists('.env')}")
 except ImportError:
-    print("python-dotenv not installed, relying on system environment variables")
+    print("TRY AGAIN PLEASE.")
 
 TOKEN = os.getenv("TOKEN")
 print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
 print(f"Token length: {len(TOKEN) if TOKEN else 'N/A'}")
+print("Loading virtual environment for hosting the bot locally.")
+print("Token may have been received, but the venv might've not loaded in yet. Try again!")
 
 # Check if TOKEN exists
 if not TOKEN:
@@ -41,7 +42,8 @@ bot = commands.Bot(
 
 @bot.event
 async def on_ready():
-    bot.start_time = datetime.datetime.utcnow()
+    if not hasattr(bot, 'start_time'):
+        bot.start_time = datetime.datetime.now(datetime.timezone.utc)
     print(f"Logged in as {bot.user}")
 
     channel = bot.get_channel(ALLOWED_CHANNEL_ID)

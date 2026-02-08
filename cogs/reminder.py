@@ -4,6 +4,8 @@ import json
 import os 
 import time
 
+#TODO: FIX THE TIME DELAY OF ~2 SECONDS by reducing calculation time here somehow idk
+
 REMINDER_FILE = "data/reminder.json"
 
 
@@ -42,7 +44,7 @@ class Reminder(commands.Cog):
         self.check_reminders.start()
 
     @commands.command()
-    async def remind(self,ctx, time_input: str, *, message: str):
+    async def reminder(self,ctx, time_input: str, *, message: str):
         seconds = parse_time(time_input)
         if seconds is None:
             await ctx.send("❌ Invalid Time Format. Use '10m', '2h', '4d'.")
@@ -70,7 +72,7 @@ class Reminder(commands.Cog):
     
 
 
-    @tasks.loop(seconds = 10)
+    @tasks.loop(seconds = 1)
     async def check_reminders(self):
         data = load_reminders()
         now = int(time.time())
