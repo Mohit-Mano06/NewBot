@@ -1,12 +1,3 @@
 {
-    "reminders": [
-        {
-            "id": 1,
-            "user_id": 450626076079554573,
-            "channel_id": 1469612261827022949,
-            "message": "clear",
-            "trigger_time": 1770572418,
-            "status": "pending"
-        }
-    ]
+    "reminders": []
 }
