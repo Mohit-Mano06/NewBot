@@ -1,6 +1,6 @@
 # NewBot 🤖
 
-A simple Discord bot built with Python and `discord.py`, developed by Momo. This bot performs various fun and utility tasks for your server.
+A simple Discord bot built with Python and `discord.py`, developed by Mohit and Anis. This bot performs various fun and utility tasks for your server.
 
 ## Features ✨
 
