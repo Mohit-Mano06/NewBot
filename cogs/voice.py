@@ -50,7 +50,7 @@ class Voice(commands.Cog):
             await ctx.send("❌ I'm not connected to a voice channel!")
 
     @commands.command(help="Play a sound file in voice channel")
-    async def play(self, ctx, sound_name: str = None):
+    async def playsound(self, ctx, sound_name: str = None):
         # Check if bot is in a voice channel
         if ctx.guild.id not in self.voice_clients:
             await ctx.send("❌ I'm not in a voice channel! Use `$connect` first.")

@@ -28,6 +28,7 @@ if not TOKEN:
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.voice_states = True
 
 #Anime Server channel id (#custom-bot)
 ALLOWED_CHANNEL_ID = 1469612261827022949
@@ -67,7 +68,7 @@ async def setup_hook():
     await bot.load_extension("cogs.reminder.reminder")
     await bot.load_extension("cogs.reminder.vcreminder")
     await bot.load_extension("cogs.voice")
-    #await bot.load_extension("cogs.music.music")
+    await bot.load_extension("cogs.music.music_player")
 
 ## ===== HELP ===== ##
 
