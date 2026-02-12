@@ -56,6 +56,8 @@ async def on_ready():
 
     await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
 
+
+# ===== COGS ===== # (For loading cogs and commands)
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.social")
@@ -65,14 +67,12 @@ async def setup_hook():
     await bot.load_extension("cogs.reminder.reminder")
     await bot.load_extension("cogs.reminder.vcreminder")
     await bot.load_extension("cogs.voice")
+    #await bot.load_extension("cogs.music.music")
 
 ## ===== HELP ===== ##
 
 @bot.command(help="Shows list of available commands")
 async def help(ctx):
-    if ctx.channel.id != ALLOWED_CHANNEL_ID:
-        return  # 🔕 silent outside channel
-
     embed = discord.Embed(
         title="Bot Help",
         description="List of available commands",
