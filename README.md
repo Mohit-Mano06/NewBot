@@ -1,14 +1,15 @@
 # TaskForge-Bot🤖
 
-A high-performance Discord bot built with Python and `discord.py`, developed by **Momo** (Mohit & Anis). This bot handles everything from server utilities to high-quality music playback.
+A high-performance Discord bot built with Python and `discord.py`, developed by **Momo** (Mohit & Anis). This bot handles everything from server utilities and moderation to high-quality music playback.
 
 ## Features ✨
 
 - **Music Player**: High-fidelity YouTube streaming with queue support and local FFmpeg processing.
+- **Moderation Toolset**: Advanced commands for server management including purge, kick, ban, and channel locking.
+- **Multi-Server Logging**: Intelligent, automated logging system that routes moderation events to server-specific channels.
 - **Reminders**: Set personal or voice channel-wide reminders with natural time formats.
 - **Utilities**: Advanced latency monitoring, dice rolling, and uptime tracking.
-- **Information**: Detailed bot statistics and user profile lookups.
-- **Voice Tools**: Connect to voice channels and monitor connection stats.
+- **Voice Tools**: Connect to voice channels, monitor connection stats, and manage members.
 
 ## Bot Information ℹ️
 
@@ -16,12 +17,13 @@ A high-performance Discord bot built with Python and `discord.py`, developed by 
 - **Library**: discord.py
 - **Language**: Python 3.12+
 - **Audio Engine**: FFmpeg (Local binary supported)
+- **Security**: Role-based permissions (is_bot_admin check)
 
 ## Commands 🛠️
 
 The bot uses the `$` prefix for all commands.
 
-### 🎵 Music (New!)
+### 🎵 Music
 
 - `$play <search/url>`: Plays a song from YouTube or adds it to the queue.
 - `$pause`: Pauses the current track.
@@ -29,6 +31,14 @@ The bot uses the `$` prefix for all commands.
 - `$skip`: Skips to the next song in the queue.
 - `$stop`: Stops the music and clears the queue.
 - `$queue`: Shows the current upcoming tracks.
+
+### 🛡️ Moderation (Admin Only)
+
+- `$purge <amount>`: Cleans up a specified number of messages (max 100).
+- `$kick <member> [reason]`: Kicks a member from the server and logs the action.
+- `$ban <member> [reason]`: Permanently bans a member and logs the action.
+- `$lock`: Locks the current channel, preventing members from sending messages.
+- `$unlock`: Unlocks the current channel, restoring message permissions.
 
 ### ⏰ Reminders
 
@@ -59,27 +69,30 @@ The bot uses the `$` prefix for all commands.
 
 1. **Clone the repo**:
 
-   ```bash
-   git clone https://github.com/Mohit-Mano06/TaskForge-Bot.git
-   ```
+    ```bash
+    git clone https://github.com/Mohit-Mano06/TaskForge-Bot.git
+    ```
 
 2. **Install requirements**:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 3. **Configure FFmpeg**:
 
-   Place your `ffmpeg.exe` in `cogs/music/ffmpeg/` or ensure it's in your system PATH.
+    Place your `ffmpeg.exe` in `cogs/music/ffmpeg/` or ensure it's in your system PATH.
 
-4. **Environment Variables**:
+4. **Logging Setup**:
 
-   Create a `.env` file with your `TOKEN`.
+    Configure your Guild and Channel IDs in `cogs/admin/logging.py` to enable cross-server logging.
 
-5. **Run the bot**:
+5. **Environment Variables**:
 
-   ```bash
-   ./start.bat
-   ```
+    Create a `.env` file with your `TOKEN`.
 
+6. **Run the bot**:
+
+    ```bash
+    ./start.bat
+    ```

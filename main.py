@@ -69,6 +69,7 @@ async def setup_hook():
     await bot.load_extension("cogs.reminder.vcreminder")
     await bot.load_extension("cogs.voice")
     await bot.load_extension("cogs.music.music_player")
+    await bot.load_extension("cogs.admin.moderation")
 
 ## ===== HELP ===== ##
 
