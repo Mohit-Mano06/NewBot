@@ -62,8 +62,13 @@ class Moderation(commands.Cog):
         except:
             pass
 
-        await member.kick(reason=reason)
-        await ctx.send(f"👢 {member.mention} has been kicked.")
+        try:
+            await member.kick(reason=reason)
+            await ctx.send(f"👢 {member.mention} has been kicked.")
+        except discord.Forbidden:
+            return await ctx.send("❌ **Error:** I don't have permission to kick this member. Make sure my role is **above** theirs in the server settings!")
+        except Exception as e:
+            return await ctx.send(f"❌ **Error:** {str(e)}")
 
         embed = discord.Embed(
             title = "👢 Member Kicked",
@@ -93,8 +98,13 @@ class Moderation(commands.Cog):
         except:
             pass
 
-        await member.ban(reason=reason)
-        await ctx.send(f"🔨 {member.mention} has been banned.")
+        try:
+            await member.ban(reason=reason)
+            await ctx.send(f"🔨 {member.mention} has been banned.")
+        except discord.Forbidden:
+            return await ctx.send("❌ **Error:** I don't have permission to ban this member. Make sure my role is **above** theirs in the server settings!")
+        except Exception as e:
+            return await ctx.send(f"❌ **Error:** {str(e)}")
 
         embed = discord.Embed(
             title = "🔨 Member Banned",
