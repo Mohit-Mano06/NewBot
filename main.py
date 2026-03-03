@@ -77,17 +77,26 @@ async def setup_hook():
 async def help(ctx):
     embed = discord.Embed(
         title="Bot Help",
-        description="List of available commands",
+        description="List of available commands grouped by category",
         color=0x3498db
     )
 
+    # Group commands by Cog
+    cog_commands = {}
     for command in bot.commands:
         if command.hidden:
             continue
+        
+        cog_name = command.cog.qualified_name if command.cog else "General"
+        if cog_name not in cog_commands:
+            cog_commands[cog_name] = []
+        cog_commands[cog_name].append(f"`{command.name}`")
 
+    # Add fields to embed for each Cog
+    for cog_name, commands_list in cog_commands.items():
         embed.add_field(
-            name=command.name,
-            value=command.help or "No description",
+            name=cog_name,
+            value=", ".join(commands_list),
             inline=False
         )
 
