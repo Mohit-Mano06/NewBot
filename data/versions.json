@@ -29,6 +29,12 @@
             "type": "\ud83d\udd25 Major Release",
             "message": "BOT IS DOWN",
             "timestamp": "2026-03-10 18:13:13.064856+00:00"
+        },
+        {
+            "version": "1.1.2",
+            "type": "\ud83d\udd27 Patch Update",
+            "message": "\u2022 Fixed issue with bot not playing music and having a seizure joining the voice channel (PyNaCl library has been removed and davey{new library for voice channel for newer discord.py version})",
+            "timestamp": "2026-03-11 12:18:17.784142+00:00"
         }
     ]
 }
