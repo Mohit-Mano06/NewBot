@@ -38,11 +38,32 @@ intents.voice_states = True
 #Anime Server channel id (#custom-bot)
 ALLOWED_CHANNEL_ID = 1469612261827022949
 
-bot = commands.Bot(
-    command_prefix="$", 
-    intents=intents,
-    help_command=None
-)
+class TaskForgeBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix="$",
+            intents=intents,
+            help_command=None
+        )
+
+    async def close(self):
+        print("Shutting down bot...")
+        channel = self.get_channel(ALLOWED_CHANNEL_ID)
+        if channel:
+            try:
+                await channel.send("🔴 **Bot is offline**")
+            except Exception as e:
+                print(f"Error sending shutdown message to channel: {e}")
+        
+        try:
+            from logger import send_log
+            await send_log(self, "🔴 **Bot is offline** (Log Channel Message)")
+        except Exception as e:
+            print(f"Error sending shutdown message to logs: {e}")
+
+        await super().close()
+
+bot = TaskForgeBot()
 
 ## ===== STARTUP ===== ##
 
