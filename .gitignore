@@ -6,6 +6,6 @@ cogs/__pycache__
 config_example.py
 venv
 start.bat
-
+cogs/setupguide.py
 
 data/reminder.json

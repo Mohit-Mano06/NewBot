@@ -76,6 +76,7 @@ async def setup_hook():
     await bot.load_extension("cogs.admin.moderation")
     await bot.load_extension("cogs.confession")
     await bot.load_extension("cogs.announcement")
+    await bot.load_extension("cogs.setupguide")
 ## ===== HELP ===== ##
 
 @bot.command(help="Shows list of available commands")
