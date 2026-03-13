@@ -4,4 +4,5 @@ urllib3
 yt-dlp
 python-dotenv
 
+test_ytdlp.py
 #PyNaCl
