@@ -36,7 +36,7 @@ class AI(commands.Cog):
 
         async with ctx.typing():
             response = await self.client.chat.complete_async(
-                model="mistral-small-latest",
+                model="open-mistral-7b",
                 messages=[
                     {"role": "system", "content": self.dj_prompt},
                     {"role": "user", "content": question}
