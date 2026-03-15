@@ -104,7 +104,8 @@ async def setup_hook():
     await bot.load_extension("cogs.confession")
     await bot.load_extension("cogs.announcement")
     await bot.load_extension("cogs.setupguide")
-    await bot.load_extension("cogs.mistral.ai")
+    await bot.load_extension("cogs.mistral.ai_dj")
+
     await bot.load_extension("cogs.mistral.bot_chat.chat")
     await bot.load_extension("cogs.status")
 
@@ -139,6 +140,31 @@ async def help(ctx):
         )
 
     await ctx.send(embed=embed)
+
+## ====== Server Information ======= ## 
+
+@bot.command(name="serverinfo")
+async def serverinfo(ctx):
+    guild = ctx.guild
+
+    msgb = f"""
+    ```ini
+    [🌐 SERVER INFO]
+
+    📛 Name = {guild.name}
+    👑 Owner = {guild.owner}
+    👥 Members = {guild.member_count}
+    💬 Channels = {len(guild.channels)}
+    🎭 Roles = {len(guild.roles)}
+    📅 Created = {guild.created_at.strftime("%d %b %Y")}
+    ```
+    """
+
+    await ctx.send(msgb)
+
+
+
+
 
 ## ===== ERROR HANDLING ===== ##
 
