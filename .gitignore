@@ -7,6 +7,10 @@ config_example.py
 venv
 start.bat
 cogs/setupguide.py
+test_ytdlp.py
+warnings.json
+r6_tracker.py
+
 <<<<<<< Updated upstream
 =======
 test_ytdlp.py
