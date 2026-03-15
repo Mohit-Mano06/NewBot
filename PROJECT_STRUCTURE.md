@@ -1,36 +1,49 @@
 # 📂 Project Structure Guide
 
-This document outlines the folder structure and the purpose of each file in the **NewBot** project. Use this as a reference when collaborating.
+This document outlines the folder structure and the purpose of each file in the **TaskForge-Bot** project.
 
 ## 📌 Root Directory
 
-The main folder contains the core bot files and configuration.
-
 | File / Folder | Description |
 |--------------|-------------|
-| `main.py` |  This is the entry point of the bot. It handles startup, loading extensions (cogs), and global error handling. |
-| `config.py` | Contains sensitive configuration variables (like your Discord Token). **Do not share this file.** |
-| `config_example.py` | A template for `config.py`. Collaborators should rename this to `config.py` and add their own token. |
-| `requirements.txt` | Lists all Python libraries required to run the bot (e.g., `discord.py`). |
-| `README.md` | General introduction and setup instructions for the project. |
-| `.gitignore` | Tells Git which files to ignore (like `config.py` and `__pycache__`). |
+| `main.py` | Entry point. Handles startup, extension loading, and global error handling. |
+| `.env` | **Secret**. Contains `TOKEN` and `MISTRAL_TOKEN`. Do not commit! |
+| `config_example.py` | Template for environment variable setup. |
+| `requirements.txt` | Python library dependencies. |
+| `README.md` | Setup instructions and feature overview. |
+| `logger.py` | Specialized logging utility for moderation events. |
+| `start.bat` | Windows batch script to launch the bot in the virtual environment. |
 
 ---
 
-## ⚙️ Cogs Folder (`/cogs`)
+## ⚙️ Cogs Directory (`/cogs`)
 
-This folder contains modular extensions. Each file represents a category of commands.
+Modular extensions grouped by functionality.
 
-| File | Description |
-|------|-------------|
-| `social.py` | Contains social commands like `hello` and `whoami`. Handles user interactions. |
-| `utility.py` | unexpected/fun tools. Contains `roll` (dice) and `ping` (latency check). |
-| `info.py` | properties of the bot. Contains `whomadeyou`, `whoareyou`, and `botinfo`. |
-| `hidden.py` | **Admin/Maintenance**. Contains commands that are hidden from the help menu, like `downtime`. |
+### 📁 `cogs/general/`
+Core utility and information commands.
+- `info.py`: Bot/Server information and uptime.
+- `utility.py`: General tools (ping, roll, hello) and voice stats.
+- `confession.py`: Anonymous messaging system.
+- `announcement.py`: Versioning and update broadcasts.
+- `status.py`: Automated bot status (presence) cycling.
+- `setupguide.py`: Developer setup instructions.
 
-## 🚀 Quick Start for Collaborators
+### 📁 `cogs/mistral/`
+AI-powered features leveraging the Mistral SDK.
+- `ai_dj.py`: Interactive AI music playlist generation.
+- `bot_chat/`: Multi-turn AI conversation system (`chat.py`).
 
-1. **Clone the repo**.
-2. **Install dependencies**: `pip install -r requirements.txt`
-3. **Setup Config**: Rename `config_example.py` to `config.py` and add your bot token.
-4. **Run**: `python main.py`
+### 📁 `cogs/music/`
+Core music playback engine.
+- `music_player.py`: yt-dlp based audio streaming.
+- `ffmpeg/`: Local FFmpeg binaries.
+
+### 📁 `cogs/admin/`
+Server management and security.
+- `moderation.py`: Kick, ban, purge, and logging integration.
+
+### 📁 `cogs/reminder/`
+Time-based alerting systems.
+- `reminder.py`: User-facing personal reminders.
+- `vcreminder.py`: Voice channel-wide alerts.

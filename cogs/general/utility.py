@@ -30,11 +30,43 @@ class Utility (commands.Cog):
 
         await message.edit(content=f"**API Latency:** {api_latency:.2f}ms\n**WebSocket Latency:** {websocket_latency:.2f}ms\n{msg}")
 
-    @commands.command(help = "Shows bot uptime")
-    async def uptime(self, ctx):
-        uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.start_time
-        uptime = str(uptime).split('.')[0]
-        await ctx.send(f"Current Uptime: {uptime}")
+    @commands.command(help = "Greets you")
+    async def hello(self,ctx):
+        await ctx.send("Hello 👋")
+
+    @commands.command(help="List members in your current voice channel")
+    async def vcmembers(self, ctx):
+        if not ctx.author.voice:
+            return await ctx.send("❌ You must be in a voice channel!")
+            
+        vc_channel = ctx.author.voice.channel
+        members = [member.display_name for member in vc_channel.members if not member.bot]
+        
+        if members:
+            member_list = "\n".join(members)
+            await ctx.send(f"👥 Members in {vc_channel.name}:\n{member_list}")
+        else:
+            await ctx.send(f"🔇 No members in {vc_channel.name}")
+
+    @commands.command(help="Show voice channel connection and stats")
+    async def vcstat(self, ctx):
+        status_lines = []
+        
+        websocket_ping = self.bot.latency * 1000
+        ping_status = "🟢 Low" if websocket_ping < 150 else ("🟡 Medium" if websocket_ping < 250 else "🔴 High")
+            
+        status_lines.append(f"📡 WebSocket Ping: {websocket_ping:.2f}ms ({ping_status})")
+        
+        if ctx.guild.voice_client:
+            vc = ctx.guild.voice_client
+            channel = vc.channel
+            member_count = len([m for m in channel.members if not m.bot])
+            status_lines.append(f"🔊 Connected to: {channel.name}")
+            status_lines.append(f"👥 Members: {member_count}")
+        else:
+            status_lines.append("🔇 Not currently in a voice channel")
+        
+        await ctx.send("\n".join(status_lines))
 
 async def setup(bot):
     # Initialize start_time with timezone-aware datetime

@@ -42,16 +42,7 @@ class VCReminder(commands.Cog):
         save_reminders(data)
         await ctx.send(f"⏰ VC Reminder set for `{time_input}` in {ctx.author.voice.channel.name}: **{message}**")
 
-    @commands.command(help="List voice channel members")
-    async def vcmembers(self, ctx):            
-        vc_channel = ctx.author.voice.channel
-        members = [member.display_name for member in vc_channel.members if not member.bot]
-        
-        if members:
-            member_list = "\n".join(members)
-            await ctx.send(f"👥 Members in {vc_channel.name}:\n{member_list}")
-        else:
-            await ctx.send(f"🔇 No members in {vc_channel.name}")
+
 
 async def setup(bot):
     await bot.add_cog(VCReminder(bot))
