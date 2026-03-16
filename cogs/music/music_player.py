@@ -193,12 +193,31 @@ class MusicPlayer(commands.Cog):
     @commands.command(name='queue', help='Shows the current music queue')
     async def queue_info(self, ctx):
         player = self.get_player(ctx)
-        if player.queue.empty():
-            return await ctx.send("Empty queue.")
+        
+        # Check if something is playing or if the queue is not empty
+        if not player.current and player.queue.empty():
+            return await ctx.send("🎧 The queue is currently empty.")
+
         upcoming = list(player.queue._queue)
-        fmt = '\n'.join(f'{i+1}. `{song.title}`' for i, song in enumerate(upcoming))
-        embed = discord.Embed(title=f'Upcoming - Next {len(upcoming)}', description=fmt)
-        await ctx.send(embed=embed)
+        
+        msg = "╭─ 🎵 MUSIC QUEUE\n"
+        if player.current:
+            msg += f"│ Now Playing: {player.current.title}\n"
+        else:
+            msg += "│ Now Playing: Nothing\n"
+            
+        msg += "│\n"
+        
+        if not upcoming:
+            msg += "│ No upcoming songs.\n"
+        else:
+            msg += "│ Upcoming:\n"
+            for i, song in enumerate(upcoming, 1):
+                msg += f"│ {i}. {song.title}\n"
+        
+        msg += "╰────────────────────"
+        
+        await ctx.send(f"```\n{msg}\n```")
 
     
     @commands.command(name="clear", help="Clears the music queue")
