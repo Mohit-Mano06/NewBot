@@ -104,7 +104,7 @@ async def setup_hook():
     await bot.load_extension("cogs.general.announcement")
     await bot.load_extension("cogs.general.setupguide")
     await bot.load_extension("cogs.mistral.ai")
-
+    await bot.load_extension("cogs.system")
     await bot.load_extension("cogs.mistral.bot_chat.chat")
     await bot.load_extension("cogs.general.status")
 

@@ -62,13 +62,6 @@ class Info(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(help = "Shows bot uptime")
-    async def uptime(self, ctx):
-        uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.start_time
-        uptime = str(uptime).split('.')[1] if '.' in str(uptime) else str(uptime) # Remove microseconds
-        # Actually split is better:
-        uptime_str = str(uptime).split('.')[0]
-        await ctx.send(f"Current Uptime: {uptime_str}")
 
         
 async def setup(bot):
