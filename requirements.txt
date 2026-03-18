@@ -4,5 +4,8 @@ urllib3
 yt-dlp
 python-dotenv
 mistralai 
+flask
+
+
 
 #PyNaCl
