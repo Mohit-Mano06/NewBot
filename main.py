@@ -194,4 +194,5 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 ## ==== TOKEN ==== ##
 from keep_alive import keep_alive
 keep_alive()
+#print("Using ==================== DEV TOKEN ====================")
 bot.run(TOKEN)
