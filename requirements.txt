@@ -6,6 +6,8 @@ python-dotenv
 mistralai 
 flask
 psutil
+wavelink
+
 
 
 #PyNaCl
