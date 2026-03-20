@@ -20,5 +20,5 @@ def run():
     app.run(host='0.0.0.0', port = port)
 
 def keep_alive():
-    t = Thread(target=run)
+    t = Thread(target=run, daemon=True)
     t.start()

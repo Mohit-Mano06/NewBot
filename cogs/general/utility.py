@@ -1,12 +1,12 @@
-import random
-import datetime
-import time
 import discord
 from discord.ext import commands
+from mistralai.client import Mistral
+import os
 
 class Utility (commands.Cog):
     def __init__(self,bot):
         self.bot = bot
+        self.client = Mistral(api_key=os.getenv("MISTRAL_TOKEN"))
 
     @commands.command(help = "Roll a dice")
     async def roll(self,ctx):
@@ -30,9 +30,21 @@ class Utility (commands.Cog):
 
         await message.edit(content=f"**API Latency:** {api_latency:.2f}ms\n**WebSocket Latency:** {websocket_latency:.2f}ms\n{msg}")
 
-    @commands.command(help = "Greets you")
+    @commands.command(help = "Greets you with AI")
     async def hello(self,ctx):
-        await ctx.send("Hello 👋")
+        async with ctx.typing():
+            try:
+                response = await self.client.chat.complete_async(
+                    model="open-mistral-7b",
+                    messages=[
+                        {"role": "system", "content": "You are TaskForge, a witty and helpful Discord bot. When the user says hello, give a short, clever, and friendly greeting (max 2 sentences)."},
+                        {"role": "user", "content": "Hello!"}
+                    ]
+                )
+                greeting = response.choices[0].message.content
+                await ctx.send(greeting)
+            except Exception as e:
+                await ctx.send(f"Hello! 👋 (AI Error: {e})")
 
     @commands.command(help="List members in your current voice channel")
     async def vcmembers(self, ctx):

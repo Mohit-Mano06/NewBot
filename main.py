@@ -62,19 +62,32 @@ bot = TaskForgeBot()
 
 @bot.event
 async def on_ready():
+    # Only run this once to avoid rate limits on reconnection
+    if hasattr(bot, 'init_done'):
+        print(f"Bot reconnected: {bot.user}")
+        return
+
+    bot.init_done = True
     if not hasattr(bot, 'start_time'):
         bot.start_time = datetime.datetime.now(datetime.timezone.utc)
-    print(f"Logged in as {bot.user}")
+    
+    print(f"Logged in as {bot.user} (Initial Setup)")
 
     channel = bot.get_channel(ALLOWED_CHANNEL_ID)
     if channel:
-        async for message in channel.history(limit=10):
-            if message.author == bot.user and "Bot is online" in message.content:
-                await message.delete()
+        try:
+            async for message in channel.history(limit=10):
+                if message.author == bot.user and "Bot is online" in message.content:
+                    await message.delete()
 
-        await channel.send("🟢 **Bot is online**")
+            await channel.send("🟢 **Bot is online**")
+        except Exception as e:
+            print(f"Warning: Could not send startup message: {e}")
 
-    await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
+    try:
+        await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
+    except Exception as e:
+        print(f"Warning: Could not send log message: {e}")
 
 @bot.event
 async def setup_hook():
@@ -83,7 +96,7 @@ async def setup_hook():
         "cogs.general.utility", "cogs.general.info", "cogs.reminder.reminder",
         "cogs.reminder.vcreminder", "cogs.music.music_player", "cogs.admin.moderation",
         "cogs.general.confession", "cogs.general.announcement", "cogs.general.setupguide",
-        "cogs.mistral.ai", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
+        "cogs.mistral.ai_dj", "cogs.mistral.ai_chat", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
     ]
     for ext in extensions:
         try:
@@ -149,8 +162,16 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 from keep_alive import keep_alive
 keep_alive()
 
+print("Waiting 3 seconds for system to settle...")
+import time
+time.sleep(3)
+
 print("Attempting to start bot.run()...")
 try:
     bot.run(TOKEN)
+except KeyboardInterrupt:
+    print("\n[!] Manual shutdown detected.")
 except Exception as e:
     print(f"FATAL ERROR during bot.run(): {e}")
+    if "1015" in str(e):
+        print("💡 TIP: You are being rate limited by Cloudflare/Discord. Try restarting the Render service or changing the region.")
