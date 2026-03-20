@@ -3,12 +3,16 @@ from discord.ext import commands
 import asyncio
 import yt_dlp
 import os
+import wavelink 
+
 
 # FFmpeg configuration - PASTE YOUR PATH HERE
 # USE A RAW STRING (r"...") to avoid Windows path errors
 # Example: FFMPEG_EXE_PATH = r"C:\path\to\ffmpeg.exe"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 FFMPEG_EXE_PATH = os.path.join(current_dir, "ffmpeg", "ffmpeg.exe")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # YTDL Configuration
 ytdl_format_options = {
@@ -23,6 +27,11 @@ ytdl_format_options = {
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0',
+    'cookiefile' : os.path.join(BASE_DIR, '..', 'data', 'cookies.txt')
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    },
+    'age_limit' : 99,
 }
 
 ffmpeg_options = {
@@ -30,7 +39,9 @@ ffmpeg_options = {
     'options': '-vn -ar 48000 -ac 2',
 }
 
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+
+def get_ytdl():
+    return yt_dlp.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -42,7 +53,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: get_ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:
             data = data['entries'][0]
