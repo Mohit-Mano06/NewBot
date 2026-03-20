@@ -3,46 +3,35 @@ from discord.ext import commands
 import datetime
 import asyncio
 import sys
-
+import os
+from logger import send_log
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-#Logging bot commands
-from logger import send_log 
-
-import os
-
-# Load environment variables & error handling for token/env
+# Load environment variables
 try:
     from dotenv import load_dotenv
     load_dotenv()
     print("Loaded .env file")
-    print(f"Current directory: {os.getcwd()}")
-    print(f".env file exists: {os.path.exists('.env')}")
 except ImportError:
-    print("TRY AGAIN PLEASE.")
+    print("dotenv library not found. Ensure it is installed.")
 
 TOKEN = os.getenv("TOKEN")
-print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
-print(f"Token length: {len(TOKEN) if TOKEN else 'N/A'}")
-print(f"Virtual environment: {'VEnv active' if TOKEN else 'Click run again to load venv properly.'}")
-
 MISTRAL_API_KEY = os.getenv("MISTRAL_TOKEN")
+
+# Diagnostic logging
+print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
 print(f"Mistral Token retrieved: {'Yes' if MISTRAL_API_KEY else 'No'}")
-print(f"Token length: {len(MISTRAL_API_KEY) if MISTRAL_API_KEY else 'N/A'}")
-print(f"Virtual environment: {'VEnv active' if MISTRAL_API_KEY else 'Click run again to load venv properly.'}")
 
-
-# Check if TOKEN exists
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN not found! Check your .env file or environment variables")
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
+print("Intents configured.")
 
-#Anime Server channel id (#custom-bot)
 ALLOWED_CHANNEL_ID = 1469612261827022949
 
 class TaskForgeBot(commands.Bot):
@@ -60,19 +49,16 @@ class TaskForgeBot(commands.Bot):
             try:
                 await channel.send("🔴 **Bot is offline**")
             except Exception as e:
-                print(f"Error sending shutdown message to channel: {e}")
+                print(f"Error sending shutdown message: {e}")
         
         try:
-            from logger import send_log
             await send_log(self, "🔴 **Bot is offline** (Log Channel Message)")
         except Exception as e:
-            print(f"Error sending shutdown message to logs: {e}")
+            print(f"Error sending shutdown log: {e}")
 
         await super().close()
 
 bot = TaskForgeBot()
-
-## ===== STARTUP ===== ##
 
 @bot.event
 async def on_ready():
@@ -90,84 +76,55 @@ async def on_ready():
 
     await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
 
-
-# ===== COGS ===== # (For loading cogs and commands)
 @bot.event
 async def setup_hook():
-    await bot.load_extension("cogs.general.utility")
-    await bot.load_extension("cogs.general.info")
-    await bot.load_extension("cogs.reminder.reminder")
-    await bot.load_extension("cogs.reminder.vcreminder")
-    await bot.load_extension("cogs.music.music_player")
-    await bot.load_extension("cogs.admin.moderation")
-    await bot.load_extension("cogs.general.confession")
-    await bot.load_extension("cogs.general.announcement")
-    await bot.load_extension("cogs.general.setupguide")
-    await bot.load_extension("cogs.mistral.ai")
-    await bot.load_extension("cogs.system")
-    await bot.load_extension("cogs.mistral.bot_chat.chat")
-    await bot.load_extension("cogs.general.status")
+    print("Starting setup_hook (loading extensions)...")
+    extensions = [
+        "cogs.general.utility", "cogs.general.info", "cogs.reminder.reminder",
+        "cogs.reminder.vcreminder", "cogs.music.music_player", "cogs.admin.moderation",
+        "cogs.general.confession", "cogs.general.announcement", "cogs.general.setupguide",
+        "cogs.mistral.ai", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
+    ]
+    for ext in extensions:
+        try:
+            await bot.load_extension(ext)
+            print(f"✅ Loaded {ext}")
+        except Exception as e:
+            print(f"❌ Failed to load {ext}: {e}")
+    print("setup_hook complete.")
 
-
-## ===== HELP ===== ##
-
-@bot.command(help="Shows list of available commands")
-async def help(ctx):
+@bot.command(name="help")
+async def help_command(ctx):
     embed = discord.Embed(
         title="Bot Help",
         description="List of available commands grouped by category",
         color=0x3498db
     )
-
-    # Group commands by Cog
     cog_commands = {}
     for command in bot.commands:
         if command.hidden:
             continue
-        
         cog_name = command.cog.qualified_name if command.cog else "General"
         if cog_name not in cog_commands:
             cog_commands[cog_name] = []
         cog_commands[cog_name].append(f"`{command.name}`")
 
-    # Add fields to embed for each Cog
     for cog_name, commands_list in cog_commands.items():
-        embed.add_field(
-            name=cog_name,
-            value=", ".join(commands_list),
-            inline=False
-        )
-
+        embed.add_field(name=cog_name, value=", ".join(commands_list), inline=False)
     await ctx.send(embed=embed)
-
-
-
-
-
-
-
-## ===== ERROR HANDLING ===== ##
 
 @bot.event
 async def on_command_error(ctx, error):
-    # Print the error to console
-    import traceback
-    traceback.print_exception(type(error), error, error.__traceback__)
-
-    # 🔕 stay silent everywhere except allowed channel
     if ctx.channel.id != ALLOWED_CHANNEL_ID:
         return
-
-    # ignore unknown commands
     if isinstance(error, commands.CommandNotFound):
         return
-
-    # ignore permission errors
     if isinstance(error, commands.CheckFailure):
         return
+    import traceback
+    traceback.print_exception(type(error), error, error.__traceback__)
+    raise error
 
-    raise error  # real bugs only
-    
 @bot.command(name="sync", hidden=True)
 @commands.is_owner()
 async def sync(ctx):
@@ -187,12 +144,13 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
         print(f"Interaction error: {error}")
         if not interaction.response.is_done():
             await interaction.response.send_message("An unexpected error occurred.", ephemeral=True)
-        else:
-            await interaction.followup.send("An unexpected error occurred.", ephemeral=True)
 
-
-## ==== TOKEN ==== ##
+## ==== STARTUP ==== ##
 from keep_alive import keep_alive
 keep_alive()
-#print("Using ==================== DEV TOKEN ====================")
-bot.run(TOKEN)
+
+print("Attempting to start bot.run()...")
+try:
+    bot.run(TOKEN)
+except Exception as e:
+    print(f"FATAL ERROR during bot.run(): {e}")
