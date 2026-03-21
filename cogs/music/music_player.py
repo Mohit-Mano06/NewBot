@@ -35,7 +35,7 @@ ytdl_format_options = {
     'cookiefile': COOKIES_PATH,
     'source_address': '0.0.0.0',
     'extractor_args': {
-        'youtube': ['player_client=android,web']
+        'youtube': ['player_client=android']
     },
     'http_headers': {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -66,73 +66,74 @@ class YTDLSource(discord.PCMVolumeTransformer):
         def extract():
             ydl = get_ytdl()
 
-            # If not a URL → search
+            # 🔥 STEP 1: FORCE SEARCH
             if not url.startswith("http"):
-                search_query = f"ytsearch1:{url}"
-                data = ydl.extract_info(search_query, download=not stream)
-
-                # 🔥 fallback if search fails
-                if not data or not data.get("entries"):
-                    # Try alternative search method
-                    search_query = f"ytsearch:{url}"
-                    data = ydl.extract_info(search_query, download=not stream)
-
-                if not data or not data.get("entries"):
-                    raise ValueError("Search failed (YouTube blocked results)")
-
-                return data['entries'][0]
-
-            # If URL → extract directly
-            return ydl.extract_info(url, download=not stream)
-
-        data = await loop.run_in_executor(None, extract)
-
-        if not data:
-            raise ValueError("Could not extract stream data")
-
-        stream_url = data.get('url')
-
-        # Fallback if standard extraction fails
-        if not stream_url:
-            formats = data.get('formats', [])
-            if not formats:
-                raise ValueError("Could not extract stream URL (no formats found)")
-
-            # Priority 1: Pure audio streams
-            audio_formats = [
-                f for f in formats
-                if isinstance(f, dict) 
-                and f.get('acodec') and f.get('acodec') != 'none'
-                and (f.get('vcodec') == 'none' or not f.get('vcodec'))
-                and f.get('url')
-            ]
-
-            # Priority 2: Any stream with audio
-            if not audio_formats:
-                audio_formats = [
-                    f for f in formats
-                    if isinstance(f, dict)
-                    and f.get('acodec') and f.get('acodec') != 'none'
-                    and f.get('url')
+                queries = [
+                    f"ytsearch1:{url}",
+                    f"ytsearch:{url}"
                 ]
 
-            if not audio_formats:
-                raise ValueError("Could not extract stream URL (no valid audio formats found)")
+                data = None
+                for q in queries:
+                    try:
+                        data = ydl.extract_info(q, download=False)
+                        if data and data.get("entries"):
+                            data = next((e for e in data["entries"] if e), None)
+                            if data:
+                                break
+                    except Exception:
+                        continue
 
-            # Assume yt-dlp sorted them, take the best available match
-            stream_url = audio_formats[-1]['url']
+                if not data:
+                    raise ValueError("Search failed: YouTube returned no results")
 
-        filename = stream_url if stream else get_ytdl().prepare_filename(data)
-        
-        # We inject stream_url into data so any downstream processes see the correct URL
-        if not data.get('url'):
-            data['url'] = stream_url
-            
+            else:
+                # 🔥 Direct URL
+                data = ydl.extract_info(url, download=False)
+
+            if not data:
+                raise ValueError("yt-dlp returned no data")
+
+            # 🔥 STEP 2: GET STREAM URL
+            stream_url = data.get("url")
+
+            if not stream_url:
+                formats = data.get("formats", [])
+
+                if not formats:
+                    raise ValueError("No formats found in extracted data")
+
+                # Prefer audio formats
+                audio_formats = [
+                    f for f in formats
+                    if f.get("acodec") != "none" and f.get("url")
+                ]
+
+                if audio_formats:
+                    stream_url = audio_formats[-1]["url"]
+                else:
+                    # fallback to any playable format
+                    valid_formats = [f for f in formats if f.get("url")]
+                    if not valid_formats:
+                        raise ValueError("No playable formats found")
+                    stream_url = valid_formats[-1]["url"]
+
+            if not stream_url:
+                raise ValueError("Could not extract stream URL")
+
+            return stream_url, data
+
+        stream_url, data = await loop.run_in_executor(None, extract)
+
         return cls(
-            discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXE_PATH, **ffmpeg_options),
+            discord.FFmpegPCMAudio(
+                stream_url,
+                executable=FFMPEG_EXE_PATH,
+                **ffmpeg_options
+            ),
             data=data
         )
-
+    
 class GuildPlayer:
     """A class which is assigned to each guild using the bot for Music."""
     __slots__ = ('bot', '_guild', '_channel', '_cog', 'queue', 'next', 'current', 'vc')
