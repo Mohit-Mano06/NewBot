@@ -62,16 +62,22 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: get_ytdl().extract_info(url, download=not stream))
+        if not url.startswith("http"):
+            url = f"ytsearch1:{url}"
+
+        data = await loop.run_in_executor(
+            None,
+            lambda: get_ytdl().extract_info(url, download=not stream)
+        )
 
         if data is None:
             raise ValueError("yt-dlp returned no data. The video may be unavailable, age-restricted, or region-blocked.")
 
-        if 'entries' in data:
-            entry = next((e for e in data['entries'] if e), None)
-            if entry is None:
-                raise ValueError("No valid entries found in the playlist/search result.")
-            data = entry
+        if data and 'entries' in data:
+            entries = [e for e in data['entries'] if e]
+            if not entries:
+                raise ValueError("No valid results found (empty search response)")
+            data = entries[0]
 
         if not data.get('url'):
             raise ValueError(f"Could not extract a stream URL for: {data.get('title', url)}")
