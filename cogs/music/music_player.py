@@ -87,10 +87,47 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         data = await loop.run_in_executor(None, extract)
 
-        if not data or not data.get('url'):
-            raise ValueError("Could not extract stream URL")
+        if not data:
+            raise ValueError("Could not extract stream data")
 
-        filename = data['url'] if stream else get_ytdl().prepare_filename(data)
+        stream_url = data.get('url')
+
+        # Fallback if standard extraction fails
+        if not stream_url:
+            formats = data.get('formats', [])
+            if not formats:
+                raise ValueError("Could not extract stream URL (no formats found)")
+
+            # Priority 1: Pure audio streams
+            audio_formats = [
+                f for f in formats
+                if isinstance(f, dict) 
+                and f.get('acodec') and f.get('acodec') != 'none'
+                and (f.get('vcodec') == 'none' or not f.get('vcodec'))
+                and f.get('url')
+            ]
+
+            # Priority 2: Any stream with audio
+            if not audio_formats:
+                audio_formats = [
+                    f for f in formats
+                    if isinstance(f, dict)
+                    and f.get('acodec') and f.get('acodec') != 'none'
+                    and f.get('url')
+                ]
+
+            if not audio_formats:
+                raise ValueError("Could not extract stream URL (no valid audio formats found)")
+
+            # Assume yt-dlp sorted them, take the best available match
+            stream_url = audio_formats[-1]['url']
+
+        filename = stream_url if stream else get_ytdl().prepare_filename(data)
+        
+        # We inject stream_url into data so any downstream processes see the correct URL
+        if not data.get('url'):
+            data['url'] = stream_url
+            
         return cls(
             discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXE_PATH, **ffmpeg_options),
             data=data
