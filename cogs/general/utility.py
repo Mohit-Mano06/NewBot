@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from mistralai.client import Mistral
 import os
+import random
+import time
+import datetime
 
 class Utility (commands.Cog):
     def __init__(self,bot):

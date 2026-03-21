@@ -128,8 +128,6 @@ async def help_command(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if ctx.channel.id != ALLOWED_CHANNEL_ID:
-        return
     if isinstance(error, commands.CommandNotFound):
         return
     if isinstance(error, commands.CheckFailure):
