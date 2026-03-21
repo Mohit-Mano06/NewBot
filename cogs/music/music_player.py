@@ -48,20 +48,16 @@ else:
 
 # YTDL Configuration
 ytdl_format_options = {
-    'format': 'bestaudio[ext=webm]/bestaudio/best',
+    'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': True,
+    'ignoreerrors': False,
     'quiet': True,
     'no_warnings': True,
-    'default_search': 'auto',
     'cookiefile': COOKIES_PATH,
     'source_address': '0.0.0.0',
-    'extractor_args': {
-        'youtube': ['player_client=android']
-    },
     'http_headers': {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     },
@@ -73,8 +69,11 @@ ffmpeg_options = {
 }
 
 
-def get_ytdl():
-    return yt_dlp.YoutubeDL(ytdl_format_options)
+def get_ytdl(client="android"):
+    """Returns a YoutubeDL instance configured with a specific player client."""
+    opts = ytdl_format_options.copy()
+    opts['extractor_args'] = {'youtube': [f'player_client={client}']}
+    return yt_dlp.YoutubeDL(opts)
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -89,47 +88,68 @@ class YTDLSource(discord.PCMVolumeTransformer):
         loop = loop or asyncio.get_event_loop()
 
         def extract():
-            ydl = get_ytdl()
-
-            # 🔥 STEP 1: FORCE SEARCH
             target_url = url
+            
+            # 🔥 1. FORCE MANUAL SEARCH (If not a URL)
             if not target_url.startswith("http"):
+                print(f"[Search Engine] Performing manual scrape for query: {target_url}")
                 target_url = search_youtube(url)
                 if not target_url:
                     raise ValueError("Manual search failed: YouTube returned no results or blocked the request")
 
-            # 🔥 Direct URL Extraction (No ytsearch used)
-            data = ydl.extract_info(target_url, download=False)
+            # 🔥 2. MULTI-CLIENT EXTRACTION
+            clients = ["android", "web", "ios"]
+            data = None
+            last_error = None
+
+            for client in clients:
+                try:
+                    print(f"[Extractor] Attempting extraction with client '{client}' on {target_url}")
+                    ydl = get_ytdl(client)
+                    data = ydl.extract_info(target_url, download=not stream)
+                    if data:
+                        print(f"[Extractor] Success with client '{client}'")
+                        break
+                except Exception as e:
+                    print(f"[Extractor] Client '{client}' failed: {e}")
+                    last_error = str(e)
 
             if not data:
-                raise ValueError("yt-dlp returned no data")
+                raise ValueError(f"yt-dlp failed to extract data from all clients. Last error: {last_error}")
 
-            # 🔥 STEP 2: GET STREAM URL
-            stream_url = data.get("url")
+            # Extract from playlist structure if applicable
+            if 'entries' in data:
+                entry = next((e for e in data['entries'] if e), None)
+                if not entry:
+                    raise ValueError("No valid entries found in the playlist/search result")
+                data = entry
+
+            # 🔥 3. ROBUST STREAM URL EXTRACTION
+            stream_url = data.get('url')
 
             if not stream_url:
-                formats = data.get("formats", [])
-
+                formats = data.get('formats', [])
                 if not formats:
-                    raise ValueError("No formats found in extracted data")
+                    raise ValueError("Could not extract stream URL: No formats present in data payload")
 
-                # Prefer audio formats
-                audio_formats = [
-                    f for f in formats
-                    if f.get("acodec") != "none" and f.get("url")
-                ]
-
+                # Step 3a: Audio-only preference
+                audio_formats = [f for f in formats if f.get('acodec') != 'none' and (f.get('vcodec') == 'none' or not f.get('vcodec')) and f.get('url')]
+                
+                # Step 3b: Any format with audio
+                if not audio_formats:
+                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('url')]
+                    
+                # Step 3c: Ultimate fallback (any format with URL)
                 if audio_formats:
-                    stream_url = audio_formats[-1]["url"]
+                    stream_url = audio_formats[-1]['url']
                 else:
-                    # fallback to any playable format
-                    valid_formats = [f for f in formats if f.get("url")]
+                    valid_formats = [f for f in formats if f.get('url')]
                     if not valid_formats:
                         raise ValueError("No playable formats found")
-                    stream_url = valid_formats[-1]["url"]
+                    stream_url = valid_formats[-1]['url']
 
             if not stream_url:
-                raise ValueError("Could not extract stream URL")
+                raise ValueError("Stream extraction failed inexplicably after fallback parsing")
 
             return stream_url, data
 
