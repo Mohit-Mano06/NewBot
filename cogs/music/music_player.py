@@ -35,7 +35,7 @@ ytdl_format_options = {
     'cookiefile': COOKIES_PATH,
     'source_address': '0.0.0.0',
     'extractor_args': {
-        'youtube': ['player_client=android']
+        'youtube': ['player_client=android,web']
     },
     'http_headers': {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -107,9 +107,9 @@ class GuildPlayer:
                 self.next.clear()
 
                 try:
-                    async with asyncio.timeout(300):  # 5 minutes idle timeout
-                        source = await self.queue.get()
-                except (asyncio.TimeoutError, TimeoutError):
+                    # Wait for the next song. If we timeout cancel the player and leave...
+                    source = await asyncio.wait_for(self.queue.get(), timeout=300)  # 5 minutes idle timeout
+                except asyncio.TimeoutError:
                     return self.destroy(self._guild)
 
                 self.current = source
@@ -161,6 +161,7 @@ class MusicPlayer(commands.Cog):
             player = self.players[ctx.guild.id]
         except KeyError:
             player = GuildPlayer(ctx)
+            player._cog = self  # Ensure it always belongs to MusicPlayer, even if invoked by AI DJ
             self.players[ctx.guild.id] = player
         return player
 
@@ -181,8 +182,10 @@ class MusicPlayer(commands.Cog):
 
         player = self.get_player(ctx)
 
-        if not player.vc or not player.vc.is_connected():
+        if not ctx.voice_client:
             player.vc = await ctx.author.voice.channel.connect()
+        else:
+            player.vc = ctx.voice_client
 
         async with ctx.typing():
             try:

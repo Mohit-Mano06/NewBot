@@ -47,6 +47,9 @@ class TaskForgeBot(commands.Bot):
         channel = self.get_channel(ALLOWED_CHANNEL_ID)
         if channel:
             try:
+                async for message in channel.history(limit=10):
+                    if message.author == bot.user and "Bot is offline" in message.content:
+                        await message.delete()
                 await channel.send("🔴 **Bot is offline**")
             except Exception as e:
                 print(f"Error sending shutdown message: {e}")
