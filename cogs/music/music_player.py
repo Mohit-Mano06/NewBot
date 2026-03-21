@@ -3,6 +3,31 @@ from discord.ext import commands
 import asyncio
 import yt_dlp
 import os
+import urllib.parse
+import urllib.request
+import re
+
+def search_youtube(query):
+    """Fallback manual HTML scraper for YouTube search to bypass datacenter blocking."""
+    search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(query)}"
+    try:
+        req = urllib.request.Request(
+            search_url,
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        )
+        html = urllib.request.urlopen(req).read().decode()
+        
+        # Look for the videoId in the page's JSON data objects
+        video_ids = re.findall(r'"videoId":"([a-zA-Z0-9_-]{11})"', html)
+        if not video_ids:
+            # Fallback to standard watch URL patterns if JSON structure changes
+            video_ids = re.findall(r'watch\?v=([a-zA-Z0-9_-]{11})', html)
+            
+        if video_ids:
+            return f"https://www.youtube.com/watch?v={video_ids[0]}"
+    except Exception as e:
+        print(f"[Manual Search Error] {e}")
+    return None
 
 
 # FFmpeg: auto-detect system binary (Linux/Ubuntu) or local exe (Windows)
@@ -67,29 +92,14 @@ class YTDLSource(discord.PCMVolumeTransformer):
             ydl = get_ytdl()
 
             # 🔥 STEP 1: FORCE SEARCH
-            if not url.startswith("http"):
-                queries = [
-                    f"ytsearch1:{url}",
-                    f"ytsearch:{url}"
-                ]
+            target_url = url
+            if not target_url.startswith("http"):
+                target_url = search_youtube(url)
+                if not target_url:
+                    raise ValueError("Manual search failed: YouTube returned no results or blocked the request")
 
-                data = None
-                for q in queries:
-                    try:
-                        data = ydl.extract_info(q, download=False)
-                        if data and data.get("entries"):
-                            data = next((e for e in data["entries"] if e), None)
-                            if data:
-                                break
-                    except Exception:
-                        continue
-
-                if not data:
-                    raise ValueError("Search failed: YouTube returned no results")
-
-            else:
-                # 🔥 Direct URL
-                data = ydl.extract_info(url, download=False)
+            # 🔥 Direct URL Extraction (No ytsearch used)
+            data = ydl.extract_info(target_url, download=False)
 
             if not data:
                 raise ValueError("yt-dlp returned no data")
