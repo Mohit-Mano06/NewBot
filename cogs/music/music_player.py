@@ -3,31 +3,6 @@ from discord.ext import commands
 import asyncio
 import yt_dlp
 import os
-import urllib.parse
-import urllib.request
-import re
-
-def search_youtube(query):
-    """Fallback manual HTML scraper for YouTube search to bypass datacenter blocking."""
-    search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(query)}"
-    try:
-        req = urllib.request.Request(
-            search_url,
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-        )
-        html = urllib.request.urlopen(req).read().decode()
-        
-        # Look for the videoId in the page's JSON data objects
-        video_ids = re.findall(r'"videoId":"([a-zA-Z0-9_-]{11})"', html)
-        if not video_ids:
-            # Fallback to standard watch URL patterns if JSON structure changes
-            video_ids = re.findall(r'watch\?v=([a-zA-Z0-9_-]{11})', html)
-            
-        if video_ids:
-            return f"https://www.youtube.com/watch?v={video_ids[0]}"
-    except Exception as e:
-        print(f"[Manual Search Error] {e}")
-    return None
 
 
 # FFmpeg: auto-detect system binary (Linux/Ubuntu) or local exe (Windows)
@@ -49,6 +24,7 @@ else:
 # YTDL Configuration
 ytdl_format_options = {
     'format': 'bestaudio/best',
+    'default_search': 'auto',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
@@ -56,11 +32,6 @@ ytdl_format_options = {
     'ignoreerrors': False,
     'quiet': True,
     'no_warnings': True,
-    'cookiefile': COOKIES_PATH,
-    'source_address': '0.0.0.0',
-    'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    },
 }
 
 ffmpeg_options = {
@@ -69,12 +40,7 @@ ffmpeg_options = {
 }
 
 
-def get_ytdl(client="android"):
-    """Returns a YoutubeDL instance configured with a specific player client."""
-    opts = ytdl_format_options.copy()
-    opts['extractor_args'] = {'youtube': [f'player_client={client}']}
-    return yt_dlp.YoutubeDL(opts)
-
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -86,81 +52,21 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
+        # Use lambda to ensure extract_info is run in the executor thread
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
-        def extract():
-            target_url = url
-            
-            # 🔥 1. FORCE MANUAL SEARCH (If not a URL)
-            if not target_url.startswith("http"):
-                print(f"[Search Engine] Performing manual scrape for query: {target_url}")
-                target_url = search_youtube(url)
-                if not target_url:
-                    raise ValueError("Manual search failed: YouTube returned no results or blocked the request")
+        if 'entries' in data:
+            # take first item from a playlist or search result
+            data = data['entries'][0]
 
-            # 🔥 2. MULTI-CLIENT EXTRACTION
-            clients = ["android", "web", "ios"]
-            data = None
-            last_error = None
-
-            for client in clients:
-                try:
-                    print(f"[Extractor] Attempting extraction with client '{client}' on {target_url}")
-                    ydl = get_ytdl(client)
-                    data = ydl.extract_info(target_url, download=not stream)
-                    if data:
-                        print(f"[Extractor] Success with client '{client}'")
-                        break
-                except Exception as e:
-                    print(f"[Extractor] Client '{client}' failed: {e}")
-                    last_error = str(e)
-
-            if not data:
-                raise ValueError(f"yt-dlp failed to extract data from all clients. Last error: {last_error}")
-
-            # Extract from playlist structure if applicable
-            if 'entries' in data:
-                entry = next((e for e in data['entries'] if e), None)
-                if not entry:
-                    raise ValueError("No valid entries found in the playlist/search result")
-                data = entry
-
-            # 🔥 3. ROBUST STREAM URL EXTRACTION
-            stream_url = data.get('url')
-
-            if not stream_url:
-                formats = data.get('formats', [])
-                if not formats:
-                    raise ValueError("Could not extract stream URL: No formats present in data payload")
-
-                # Step 3a: Audio-only preference
-                audio_formats = [f for f in formats if f.get('acodec') != 'none' and (f.get('vcodec') == 'none' or not f.get('vcodec')) and f.get('url')]
-                
-                # Step 3b: Any format with audio
-                if not audio_formats:
-                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('url')]
-                    
-                # Step 3c: Ultimate fallback (any format with URL)
-                if audio_formats:
-                    stream_url = audio_formats[-1]['url']
-                else:
-                    valid_formats = [f for f in formats if f.get('url')]
-                    if not valid_formats:
-                        raise ValueError("No playable formats found")
-                    stream_url = valid_formats[-1]['url']
-
-            if not stream_url:
-                raise ValueError("Stream extraction failed inexplicably after fallback parsing")
-
-            return stream_url, data
-
-        stream_url, data = await loop.run_in_executor(None, extract)
-
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        
         return cls(
             discord.FFmpegPCMAudio(
-                stream_url,
-                executable=FFMPEG_EXE_PATH,
+                filename, 
+                executable=FFMPEG_EXE_PATH, 
                 **ffmpeg_options
-            ),
+            ), 
             data=data
         )
     
@@ -199,14 +105,16 @@ class GuildPlayer:
                 self.current = source
                 print(f"[Player] Got source: {source.title}")
 
-                # Wait up to 10 seconds for the VC connection to finalize
+                # Wait up to 300 seconds (5 minutes) for the VC connection to finalize/reconnect
                 wait_time = 0
-                while wait_time < 10 and self.vc and not self.vc.is_connected():
+                while wait_time < 300 and self.vc and not self.vc.is_connected():
+                    if wait_time == 5:
+                        print("[Player] Connection dropped natively. Waiting for discord.py to reconnect...")
                     await asyncio.sleep(1)
                     wait_time += 1
 
                 if not self.vc or not self.vc.is_connected():
-                    print("[Player] Not connected to VC, destroying player.")
+                    print("[Player] Not connected to VC after 5 minutes, destroying player.")
                     return self.destroy(self._guild)
 
                 try:
