@@ -5,14 +5,22 @@ import yt_dlp
 import os
 import wavelink 
 
-
-# FFmpeg configuration - PASTE YOUR PATH HERE
-# USE A RAW STRING (r"...") to avoid Windows path errors
-# Example: FFMPEG_EXE_PATH = r"C:\path\to\ffmpeg.exe"
+# FFmpeg path: use system ffmpeg on Linux (Oracle VM), fallback to local exe on Windows
 current_dir = os.path.dirname(os.path.abspath(__file__))
-FFMPEG_EXE_PATH = os.path.join(current_dir, "ffmpeg", "ffmpeg.exe")
+_local_ffmpeg = os.path.join(current_dir, "ffmpeg", "ffmpeg.exe")
+FFMPEG_EXE_PATH = _local_ffmpeg if os.path.isfile(_local_ffmpeg) else "ffmpeg"
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# cookies.txt — check project root first, then cogs/music/, skip if neither exists
+_project_root = os.path.dirname(os.path.dirname(current_dir))
+_root_cookies = os.path.join(_project_root, "cookies.txt")
+_local_cookies = os.path.join(current_dir, "cookies.txt")
+if os.path.isfile(_root_cookies):
+    COOKIES_PATH = _root_cookies
+elif os.path.isfile(_local_cookies):
+    COOKIES_PATH = _local_cookies
+else:
+    COOKIES_PATH = None
+
 
 # YTDL Configuration
 ytdl_format_options = {
@@ -21,6 +29,7 @@ ytdl_format_options = {
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
+<<<<<<< Updated upstream
     'ignoreerrors': False,
     'logtostderr': False,
     'quiet': True,
@@ -32,6 +41,17 @@ ytdl_format_options = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     },
     'age_limit' : 99,
+=======
+    'ignoreerrors': False,   # keep False so errors surface; we handle None data explicitly
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'cookiefile': COOKIES_PATH if os.path.isfile(COOKIES_PATH) else None,
+    'source_address': '0.0.0.0',
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    },
+>>>>>>> Stashed changes
 }
 
 ffmpeg_options = {
@@ -55,8 +75,18 @@ class YTDLSource(discord.PCMVolumeTransformer):
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: get_ytdl.extract_info(url, download=not stream))
 
+        if data is None:
+            raise ValueError("yt-dlp returned no data. The video may be unavailable, age-restricted, or region-blocked.")
+
         if 'entries' in data:
-            data = data['entries'][0]
+            # Playlist — grab the first valid entry
+            entry = next((e for e in data['entries'] if e), None)
+            if entry is None:
+                raise ValueError("No valid entries found in the playlist/search result.")
+            data = entry
+
+        if not data.get('url'):
+            raise ValueError(f"Could not extract a stream URL for: {data.get('title', url)}")
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXE_PATH, **ffmpeg_options), data=data)
@@ -82,38 +112,45 @@ class GuildPlayer:
     async def player_loop(self):
         """Main player loop."""
         await self.bot.wait_until_ready()
-        
+
         try:
             while not self.bot.is_closed():
                 self.next.clear()
-    
+
                 try:
                     # Wait for the next song. If we timeout cancel the player and leave...
                     async with asyncio.timeout(300):  # 5 minutes
                         source = await self.queue.get()
                 except (asyncio.TimeoutError, TimeoutError):
                     return self.destroy(self._guild)
-    
+
                 self.current = source
                 print(f"[Player] Got source: {source.title}")
-                
+
                 # Ensure we are actually connected...
                 if not self.vc or not self.vc.is_connected():
-                    # Try to re-establish connection if possible, or cleanup
                     print("[Player] Not connected to VC, destroying player.")
                     return self.destroy(self._guild)
-    
+
                 try:
-                    self.vc.play(source, after=lambda e: self.bot.loop.call_soon_threadsafe(self.next.set) if e is None else print(f"[Player Error] {e}"))
+                    def after_play(error):
+                        if error:
+                            print(f"[Player Error] Playback error: {error}")
+                        # Always signal next, whether there was an error or not —
+                        # otherwise the loop hangs forever waiting on self.next.wait()
+                        self.bot.loop.call_soon_threadsafe(self.next.set)
+
+                    self.vc.play(source, after=after_play)
                 except Exception as e:
                     import traceback
                     print(f"[Player Exception when calling play()] {e}")
                     traceback.print_exc()
-                    
+                    self.next.set()  # unblock the loop even on exception
+
                 await self._channel.send(f"🎵 **Now playing:** `{source.title}`")
-    
+
                 await self.next.wait()
-    
+
                 # Make sure the FFmpeg process is cleaned up.
                 source.cleanup()
                 self.current = None
@@ -204,42 +241,40 @@ class MusicPlayer(commands.Cog):
     @commands.command(name='queue', help='Shows the current music queue')
     async def queue_info(self, ctx):
         player = self.get_player(ctx)
-        
-        # Check if something is playing or if the queue is not empty
+
         if not player.current and player.queue.empty():
             return await ctx.send("🎧 The queue is currently empty.")
 
         upcoming = list(player.queue._queue)
-        
+
         msg = "╭─ 🎵 MUSIC QUEUE\n"
         if player.current:
             msg += f"│ Now Playing: {player.current.title}\n"
         else:
             msg += "│ Now Playing: Nothing\n"
-            
+
         msg += "│\n"
-        
+
         if not upcoming:
             msg += "│ No upcoming songs.\n"
         else:
             msg += "│ Upcoming:\n"
             for i, song in enumerate(upcoming, 1):
                 msg += f"│ {i}. {song.title}\n"
-        
+
         msg += "╰────────────────────"
-        
+
         await ctx.send(f"```\n{msg}\n```")
 
-    
     @commands.command(name="clear", help="Clears the music queue")
     async def clear(self, ctx):
         player = self.get_player(ctx)
 
         if player.queue.empty():
             return await ctx.send("Queue is already empty.")
-        
+
         player.queue = asyncio.Queue()
-        
+
         await ctx.send("🧹 Queue cleared.")
 
 
