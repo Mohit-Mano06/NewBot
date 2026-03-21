@@ -199,6 +199,12 @@ class GuildPlayer:
                 self.current = source
                 print(f"[Player] Got source: {source.title}")
 
+                # Wait up to 10 seconds for the VC connection to finalize
+                wait_time = 0
+                while wait_time < 10 and self.vc and not self.vc.is_connected():
+                    await asyncio.sleep(1)
+                    wait_time += 1
+
                 if not self.vc or not self.vc.is_connected():
                     print("[Player] Not connected to VC, destroying player.")
                     return self.destroy(self._guild)
@@ -266,10 +272,20 @@ class MusicPlayer(commands.Cog):
 
         player = self.get_player(ctx)
 
-        if not ctx.voice_client:
-            player.vc = await ctx.author.voice.channel.connect()
-        else:
-            player.vc = ctx.voice_client
+        try:
+            if ctx.voice_client:
+                if not ctx.voice_client.is_connected():
+                    # Zombie connection detected, force disconnect first
+                    await ctx.voice_client.disconnect(force=True)
+                    player.vc = await ctx.author.voice.channel.connect(timeout=60.0)
+                else:
+                    player.vc = ctx.voice_client
+            else:
+                player.vc = await ctx.author.voice.channel.connect(timeout=60.0)
+        except Exception as e:
+            # Catches discord.errors.ClientException and TimeoutError
+            print(f"[Player Error] VC Connect Exception: {e}")
+            return await ctx.send(f"❌ Failed to join the voice channel: `{str(e)}`")
 
         async with ctx.typing():
             try:
