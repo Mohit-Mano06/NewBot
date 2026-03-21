@@ -60,41 +60,41 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('url')
 
     @classmethod
-async def from_url(cls, url, *, loop=None, stream=False):
-    loop = loop or asyncio.get_event_loop()
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
 
-    def extract():
-        ydl = get_ytdl()
+        def extract():
+            ydl = get_ytdl()
 
-        # If not a URL → search
-        if not url.startswith("http"):
-            search_query = f"ytsearch1:{url}"
-            data = ydl.extract_info(search_query, download=not stream)
-
-            # 🔥 fallback if search fails
-            if not data or not data.get("entries"):
-                # Try alternative search method
-                search_query = f"ytsearch:{url}"
+            # If not a URL → search
+            if not url.startswith("http"):
+                search_query = f"ytsearch1:{url}"
                 data = ydl.extract_info(search_query, download=not stream)
 
-            if not data or not data.get("entries"):
-                raise ValueError("Search failed (YouTube blocked results)")
+                # 🔥 fallback if search fails
+                if not data or not data.get("entries"):
+                    # Try alternative search method
+                    search_query = f"ytsearch:{url}"
+                    data = ydl.extract_info(search_query, download=not stream)
 
-            return data['entries'][0]
+                if not data or not data.get("entries"):
+                    raise ValueError("Search failed (YouTube blocked results)")
 
-        # If URL → extract directly
-        return ydl.extract_info(url, download=not stream)
+                return data['entries'][0]
 
-    data = await loop.run_in_executor(None, extract)
+            # If URL → extract directly
+            return ydl.extract_info(url, download=not stream)
 
-    if not data or not data.get('url'):
-        raise ValueError("Could not extract stream URL")
+        data = await loop.run_in_executor(None, extract)
 
-    filename = data['url'] if stream else get_ytdl().prepare_filename(data)
-    return cls(
-        discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXE_PATH, **ffmpeg_options),
-        data=data
-    )
+        if not data or not data.get('url'):
+            raise ValueError("Could not extract stream URL")
+
+        filename = data['url'] if stream else get_ytdl().prepare_filename(data)
+        return cls(
+            discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXE_PATH, **ffmpeg_options),
+            data=data
+        )
 
 class GuildPlayer:
     """A class which is assigned to each guild using the bot for Music."""
