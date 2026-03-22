@@ -1,4 +1,4 @@
-# TaskForge-Bot🤖
+# TaskForge-Bot🤖 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A high-performance Discord bot built with Python and `discord.py`, developed by **Momo** (Mohit & Anis). This bot handles everything from server utilities and moderation to high-quality music playback.
 
@@ -17,7 +17,7 @@ A high-performance Discord bot built with Python and `discord.py`, developed by 
 
 ## Bot Information ℹ️
 
-- **Developers**: Momo [Mohit](https://github.com/Mohit-Mano06)
+- **Developers**: [Mohit](https://github.com/Mohit-Mano06)
 - **Library**: discord.py
 - **Language**: Python 3.12+ (Currently run on 3.14.3)
 - **Audio Engine**: FFmpeg (Local binary supported)
@@ -119,3 +119,14 @@ The bot uses the `$` prefix for all commands.
     ```bash
     ./start.bat
     ```
+
+## IDE Setup (VS Code) 🖥️
+
+To avoid "import not found" warnings in VS Code, choose the interpreter located in the `venv` folder (e.g., `.\venv\Scripts\python.exe`).
+
+## License 📄
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+Developed with ❤️ by **Mohit**

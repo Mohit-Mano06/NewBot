@@ -1,3 +1,7 @@
+# TaskForge-Bot - Developed by Mohit
+# GitHub: https://github.com/Mohit-Mano06/TaskForge-Bot
+# License: MIT
+
 # This file is used to keep the bot up on render by http request at a set interval
 
 

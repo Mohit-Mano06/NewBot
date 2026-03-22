@@ -1,3 +1,6 @@
+# TaskForge-Bot - Developed by Mohit
+# GitHub: https://github.com/Mohit-Mano06/TaskForge-Bot
+# License: MIT
 
 async def send_log(bot, message):
     LOG_CHANNEL_ID = 1470000358960136287

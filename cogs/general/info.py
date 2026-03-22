@@ -8,11 +8,11 @@ class Info(commands.Cog):
 
     @commands.command(help = "Shows creator of the bot")
     async def whomadeyou(self, ctx):
-        await ctx.send("I was made by Momo ;) ")
+        await ctx.send("I was made by **Mohit**!\nGitHub: <https://github.com/Mohit-Mano06/TaskForge-Bot>")
 
     @commands.command(help = "Shows info about the bot")
     async def whoareyou(self, ctx):
-        await ctx.send("Am a simple discord bot created by Momo")
+        await ctx.send("I am **TaskForge**, a high-performance Discord bot developed by **Mohit** under the MIT License.")
 
     @commands.command(help = "Shows information about bot")
     async def botinfo(self, ctx):
@@ -21,6 +21,8 @@ class Info(commands.Cog):
             color=discord.Color.blue()
         )
         embed.add_field(name="Library", value="discord.py", inline=True)
+        embed.add_field(name="Developer", value="[Mohit](https://github.com/Mohit-Mano06)", inline=True)
+        embed.add_field(name="License", value="MIT", inline=True)
         embed.add_field(name="Total Commands", value=len(self.bot.commands), inline=True)
 
         await ctx.send(embed=embed)

@@ -1,10 +1,16 @@
+# TaskForge-Bot - Developed by Mohit
+# GitHub: https://github.com/Mohit-Mano06/TaskForge-Bot
+# License: MIT
+
 import discord
 from discord.ext import commands
 import datetime
 import asyncio
 import sys
 import os
+import traceback
 from logger import send_log
+from mistralai.client import Mistral
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -41,6 +47,7 @@ class TaskForgeBot(commands.Bot):
             intents=intents,
             help_command=None
         )
+        self.mistral_client = Mistral(api_key=MISTRAL_API_KEY)
 
     async def close(self):
         print("Shutting down bot...")
@@ -48,7 +55,7 @@ class TaskForgeBot(commands.Bot):
         if channel:
             try:
                 async for message in channel.history(limit=10):
-                    if message.author == bot.user and "Bot is offline" in message.content:
+                    if message.author == self.user and "Bot is offline" in message.content:
                         await message.delete()
                 await channel.send("🔴 **Bot is offline**")
             except Exception as e:
@@ -99,7 +106,7 @@ async def setup_hook():
         "cogs.general.utility", "cogs.general.info", "cogs.reminder.reminder",
         "cogs.reminder.vcreminder", "cogs.music.music_player", "cogs.admin.moderation",
         "cogs.general.confession", "cogs.general.announcement", "cogs.general.setupguide",
-        "cogs.mistral.ai_dj", "cogs.mistral.ai_chat", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
+        "cogs.mistral.ai_dj", "cogs.mistral.ai_chat", "cogs.mistral.ai_linkedin", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
     ]
     for ext in extensions:
         try:
@@ -135,7 +142,6 @@ async def on_command_error(ctx, error):
         return
     if isinstance(error, commands.CheckFailure):
         return
-    import traceback
     traceback.print_exception(type(error), error, error.__traceback__)
     raise error
 
