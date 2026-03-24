@@ -47,6 +47,13 @@
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 TaskForge can now talk with Tamabot (Some intense rivalry between bots now)",
             "timestamp": "2026-03-13 16:13:57.059428+00:00"
+        },
+        {
+            "version": "0.3.5",
+            "type": "\u2728 New Feature",
+            "message": "\u2022  Versioning has been rewinded to 0.3 ~ onwards\n\u2022 New help command system (with pages and buttons and no embeds for cleaner reading)",
+            "ai_description": "Hey everyone! \ud83c\udf89 We\u2019ve just overhauled how you get help with **TaskForge**\u2014it\u2019s now way cleaner and easier to navigate.\n\nWe rewound versioning to **0.3** so you can see all the updates at a glance, and the new **help command** (`!help`) now uses pages with buttons instead of clunky embeds. No more scrolling through walls of text\u2014just quick, organized info.\n\nGive it a try! Let us know what you think. \ud83d\udc40",
+            "timestamp": "2026-03-24 07:52:36.585409+00:00"
         }
     ]
-}
+}
