@@ -50,7 +50,7 @@ class Reminder(commands.Cog):
         self.bot = bot
         self.check_reminders.start()
 
-    @commands.command()
+    @commands.command(help="Set a reminder (e.g., $reminder 10m Take a break)")
     async def reminder(self,ctx, time_input: str, *, message: str):
         seconds = parse_time(time_input)
         if seconds is None:

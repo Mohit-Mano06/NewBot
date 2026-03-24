@@ -103,10 +103,10 @@ async def on_ready():
 async def setup_hook():
     print("Starting setup_hook (loading extensions)...")
     extensions = [
-        "cogs.general.utility","cogs.general.help", "cogs.general.info", "cogs.reminder.reminder",
-        "cogs.reminder.vcreminder", "cogs.music.music_player", "cogs.admin.moderation",
-        "cogs.general.confession", "cogs.general.announcement", "cogs.general.setupguide",
-        "cogs.mistral.ai_dj", "cogs.mistral.ai_chat", "cogs.mistral.bot_chat.insights", "cogs.system", "cogs.mistral.bot_chat.chat", "cogs.general.status"
+        "cogs.utility.tools", "cogs.general.help", "cogs.general.info", "cogs.utility.reminder",
+        "cogs.utility.vcreminder", "cogs.music.player", "cogs.admin.moderation",
+        "cogs.social.confession", "cogs.general.announcement", "cogs.general.guide",
+        "cogs.music.dj", "cogs.ai.assistant", "cogs.ai.insights", "cogs.system", "cogs.ai.chat", "cogs.general.status"
     ]
     for ext in extensions:
         try:

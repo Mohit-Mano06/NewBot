@@ -34,7 +34,7 @@ class AIChat(commands.Cog):
         }
 
     # Chat command
-    @commands.command(name="chat")
+    @commands.command(name="chat", help="Chat with TaskForge AI assistant")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def chat(self, ctx, *, message: str):
         """Chat with AI"""
@@ -76,7 +76,7 @@ class AIChat(commands.Cog):
                 await ctx.send(f"⚠️ Error: {str(e)}")
 
     # Reset conversation
-    @commands.command(name="resetchat")
+    @commands.command(name="resetchat", help="Clear your AI chat history")
     async def reset_chat(self, ctx):
         """Reset your conversation memory"""
         self.user_memory.pop(ctx.author.id, None)

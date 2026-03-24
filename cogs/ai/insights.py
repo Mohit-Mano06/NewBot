@@ -2,7 +2,7 @@ from discord.ext import commands, tasks
 from collections import defaultdict, deque
 
 
-class AI_Insights(commands.Cog):
+class AIInsights(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
         self.client = bot.mistral_client
@@ -21,7 +21,7 @@ class AI_Insights(commands.Cog):
         self.message_history[message.guild.id].append(message.content)
 
 
-    @commands.command(name="explain")
+    @commands.command(name="explain", help="AI explanation of a topic at a given level (1, 5, 10, engineer)")
     async def explain(self, ctx, level:str, *, topic:str):
         prompt = f"""
         You are an expert teacher.
@@ -67,7 +67,7 @@ class AI_Insights(commands.Cog):
 
     
 
-    @commands.command(name="obsessions")
+    @commands.command(name="obsessions", help="Analyze recent chat trends to see what the server is obsessed with")
     async def obsessions(self, ctx):
         messages = list(self.message_history[ctx.guild.id])
 

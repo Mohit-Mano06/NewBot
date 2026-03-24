@@ -14,7 +14,7 @@ def make_progress_bar(current, total, length=12):
     filled = int(length * ratio)
     return "■" * filled + "□" * (length - filled)
 
-class AI(commands.Cog):
+class AIDJ(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -135,4 +135,4 @@ class AI(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(AI(bot))
+    await bot.add_cog(AIDJ(bot))

@@ -35,7 +35,7 @@ class Moderation(commands.Cog):
             json.dump(data, f, indent=4)
 
 ## PURGE COMMAND 
-    @commands.command()
+    @commands.command(help="Deletes a specified number of messages (1-100)")
     @is_bot_admin
     async def purge(self, ctx, amount: int):
         if amount <= 0 or amount > 100:
@@ -61,7 +61,7 @@ class Moderation(commands.Cog):
         await send_log(self.bot, ctx.guild, embed)
 
 ## Kick Command
-    @commands.command()
+    @commands.command(help="Kicks a member from the server")
     @is_bot_admin
     async def kick(self, ctx, member: discord.Member, *, reason: str = "No reason provided"):
         if member == ctx.author:
@@ -99,7 +99,7 @@ class Moderation(commands.Cog):
         await send_log(self.bot, ctx.guild, embed)
 
 ## Ban Command
-    @commands.command()
+    @commands.command(help="Bans a member from the server")
     @is_bot_admin
     async def ban(self, ctx, member: discord.Member, *, reason: str = "No reason provided"):
         if member == ctx.author:
@@ -135,7 +135,7 @@ class Moderation(commands.Cog):
         await send_log(self.bot, ctx.guild, embed)
 
 ## Warn Command
-    @commands.command()
+    @commands.command(help="Warns a member for their behavior")
     @is_bot_admin
     async def warn(self, ctx, member: discord.Member, *, reason = "No Reason Provided"):
         if await self.bot.is_owner(ctx.author):

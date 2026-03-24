@@ -10,7 +10,7 @@ class Confession(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="confession", aliases=["confess"])
+    @commands.command(name="confession", aliases=["confess"], help="Sends an anonymous confession to the confession channel")
     # @commands.cooldown(1, 300, commands.BucketType.user)
     async def confess(self, ctx: commands.Context, *, message=None):
         if not message: 

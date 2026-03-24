@@ -26,7 +26,7 @@ class BotChat(commands.Cog):
         
         return user.mention
 
-    @commands.command()
+    @commands.command(help="Start an interactive multi-turn conversation with Tamabot")
     async def talktamabot(self, ctx, *, message: str = "Heyyy Tamabot, Wasssup??"):
         """Start an interactive multi-turn conversation with Tamabot"""
 
@@ -73,7 +73,7 @@ class BotChat(commands.Cog):
                 await ctx.send(f"{mention}: {goodbye}")
                 await ctx.send("*Conversation ended due to turn limit.*")
 
-    @commands.command()
+    @commands.command(help="Roast Tamabot using AI")
     async def roasttamabot(self, ctx):
         """Roast Tamabot using AI"""
 
