@@ -121,7 +121,8 @@ class Help(commands.Cog):
             "🎵 **Music** - Play tunes and manage queues\n"
             "⚙️ **Utility** - Reminders and helpful tools\n"
             "📢 **Social** - Confessions and fun\n"
-            "📁 **Info** - Bot information and status"
+            "📁 **Info** - Bot information and status\n\n"
+            f"*Use `{ctx.prefix}help <command>` for more details on a specific command.*"
         )
 
         await ctx.send(welcome_text, view=view)
@@ -129,82 +130,3 @@ class Help(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Help(bot))
-
-# ==========================================
-# PREVIOUS HELP COMMAND STRUCTURE (FALLBACK)
-# ==========================================
-"""
-class PreviousHelpView(discord.ui.View):
-    def __init__(self, bot, cog_commands, ctx):
-        super().__init__(timeout=60)
-        self.bot = bot
-        self.cog_commands = cog_commands
-        self.ctx = ctx
-        self.current_cog = None
-        self.page = 0
-        self.per_page = 5
-
-        # Add category buttons
-        for cog_name in cog_commands:
-            self.add_item(CategoryButton(cog_name, self))
-
-    def get_page_content(self):
-        commands_list = self.cog_commands[self.current_cog]
-        total_pages = math.ceil(len(commands_list) / self.per_page)
-
-        start = self.page * self.per_page
-        end = start + self.per_page
-
-        page_commands = commands_list[start:end]
-
-        text = f"**📂 {self.current_cog} Commands (Page {self.page+1}/{total_pages})**\n\n"
-        text += "\n".join(f"`{self.ctx.prefix}{cmd}`" for cmd in page_commands)
-
-        return text, total_pages
-
-
-class CategoryButton(discord.ui.Button):
-    def __init__(self, cog_name, view):
-        super().__init__(label=cog_name, style=discord.ButtonStyle.primary)
-        self.cog_name = cog_name
-        self.view_ref = view
-
-    async def callback(self, interaction: discord.Interaction):
-        view = self.view_ref
-        view.current_cog = self.cog_name
-        view.page = 0
-
-        content, _ = view.get_page_content()
-        await interaction.response.edit_message(content=content, view=view)
-
-
-class NextButton(discord.ui.Button):
-    def __init__(self, view):
-        super().__init__(label="➡️", style=discord.ButtonStyle.secondary)
-        self.view_ref = view
-
-    async def callback(self, interaction: discord.Interaction):
-        view = self.view_ref
-        _, total_pages = view.get_page_content()
-
-        if view.page + 1 < total_pages:
-            view.page += 1
-
-        content, _ = view.get_page_content()
-        await interaction.response.edit_message(content=content, view=view)
-
-
-class PrevButton(discord.ui.Button):
-    def __init__(self, view):
-        super().__init__(label="⬅️", style=discord.ButtonStyle.secondary)
-        self.view_ref = view
-
-    async def callback(self, interaction: discord.Interaction):
-        view = self.view_ref
-
-        if view.page > 0:
-            view.page -= 1
-
-        content, _ = view.get_page_content()
-        await interaction.response.edit_message(content=content, view=view)
-"""
