@@ -1,52 +1,52 @@
 {
     "releases": [
         {
-            "version": "1.1.0",
+            "version": "0.1.0",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 Added Confession Feature ( $confess {your confession}) \n\u2022 New Announcement feature (this current message for new updates)",
             "timestamp": "2026-02-27 06:39:31.572410+00:00"
         },
         {
-            "version": "1.1.1",
+            "version": "0.1.1",
             "type": "\ud83d\udd27 Patch Update",
             "message": "\u2022 Added major, feature, patch, hotfix release types with reactions \n\u2022 New command ($latest) which fetches the latest version and displays it",
             "timestamp": "2026-02-27 06:43:38.323203+00:00"
         },
         {
-            "version": "1.1.1",
+            "version": "0.1.1",
             "type": "\u26a1 Hotfix",
             "message": "\u2022 Fixed help command not working (Issue with discord embed message limit of 25 lines)",
             "timestamp": "2026-03-03 07:15:01.711838+00:00"
         },
         {
-            "version": "1.1.1",
+            "version": "0.1.1",
             "type": "\ud83d\udd25 Major Release",
             "message": "BOT IS DOWN",
             "timestamp": "2026-03-10 18:13:12.410141+00:00"
         },
         {
-            "version": "1.1.2",
+            "version": "0.1.2",
             "type": "\ud83d\udd27 Patch Update",
             "message": "\u2022 Fixed issue with bot not playing music and having a seizure joining the voice channel (PyNaCl library has been removed and davey{new library for voice channel for newer discord.py version})",
             "timestamp": "2026-03-11 12:18:17.784142+00:00"
         },
         {
-            "version": "1.1.3",
+            "version": "0.1.3",
             "type": "\u2728 New Feature",
             "message": "\u2022 Added new feature that when the bot goes offline, it sends a message \"Bot Offline\" before terminating the process (check #custom-bot for the latest status of bot)",
             "timestamp": "2026-03-12 09:04:00.146310+00:00"
         },
         {
-            "version": "1.2",
+            "version": "0.2",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 Added AI \ud83c\udfa7 DJ Feature",
             "timestamp": "2026-03-13 12:40:43.019828+00:00"
         },
         {
-            "version": "1.3",
+            "version": "0.3",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 TaskForge can now talk with Tamabot (Some intense rivalry between bots now)",
             "timestamp": "2026-03-13 16:13:57.059428+00:00"
         }
     ]
-}
+}
