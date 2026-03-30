@@ -88,11 +88,11 @@ All commands use the `$` prefix.
 
 ### ℹ️ Information
 
-- `$botinfo`: Technical breakdown of the bot.
-- `$serverinfo`: Detailed server statistics and profiles.
-- `$whoami`: Display your Discord profile details and ID.
-- `$whomadeyou` / `$whoareyou`: Learn about the bot and its creators.
-- `$setupguide`: Access detailed instructions for bot deployment.
+- `$about` (aliases: `bot`, `botinfo`): Comprehensive breakdown of TaskForge's mission and stats.
+- `$me` (aliases: `profile`, `whoami`): Your detailed Discord profile with role listing and timestamps.
+- `$server` (aliases: `serverinfo`, `guild`): Full server statistics, including member counts and channel breakdowns.
+- `$credits` (aliases: `dev`, `whomadeyou`): Recognition of the bot's developers and project links.
+- `$setupguide`: Detailed deployment instructions for developers.
 
 ---
 

@@ -6,65 +6,74 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(help = "Shows creator of the bot")
-    async def whomadeyou(self, ctx):
-        await ctx.send("I was made by **Mohit**!\nGitHub: <https://github.com/Mohit-Mano06/TaskForge-Bot>")
-
-    @commands.command(help = "Shows info about the bot")
-    async def whoareyou(self, ctx):
-        await ctx.send("I am **TaskForge**, a high-performance Discord bot developed by **Mohit** under the MIT License.")
-
-    @commands.command(help = "Shows information about bot")
-    async def botinfo(self, ctx):
-        embed = discord.Embed(
-            title="Bot Info",
-            color=discord.Color.blue()
-        )
-        embed.add_field(name="Library", value="discord.py", inline=True)
-        embed.add_field(name="Developer", value="[Mohit](https://github.com/Mohit-Mano06)", inline=True)
-        embed.add_field(name="License", value="MIT", inline=True)
-        embed.add_field(name="Total Commands", value=len(self.bot.commands), inline=True)
-
-        await ctx.send(embed=embed)
-    @commands.command(help = "Shows info about you")
-    async def whoami(self,ctx):
-        user = ctx.author
-
+    @commands.command(name="credits", aliases=["whomadeyou", "dev"], help="Shows creator of the bot")
+    async def credits(self, ctx):
+        """Developed by Mohit"""
         msg = (
-            f"Username: {user.name}\n"
-            f"ID: {user.id}\n"
-            f"Joined at: {user.joined_at}\n"
-            f"Avatar URL: {user.display_avatar.url}\n"
-            )
-
+            "### 🛠️ Developer Credits\n"
+            "TaskForge was built with ❤️ by **Mohit**.\n\n"
+            "**Links:**\n"
+            "• **GitHub:** <https://github.com/Mohit-Mano06/TaskForge-Bot>\n"
+            "• **Support:** Check our server for more updates!"
+        )
         await ctx.send(msg)
 
-    @commands.command(name="serverinfo", help="Shows detailed information about the server")
-    async def serverinfo(self, ctx):
-        guild = ctx.guild
-
-        embed = discord.Embed(
-            title="🌐 SERVER INFO",
-            color=discord.Color.blue(),
-            timestamp=datetime.datetime.now(datetime.timezone.utc)
+    @commands.command(name="about", aliases=["whoareyou", "bot", "botinfo"], help="Shows information about the bot")
+    async def about(self, ctx):
+        """Everything about TaskForge"""
+        msg = (
+            "### 🤖 TaskForge | The High-Performance Assistant\n"
+            "Developed by **Mohit** under the **MIT License**.\n\n"
+            "**Bot Statistics:**\n"
+            f"• **Total Commands:** `{len(self.bot.commands)}` commands loaded\n"
+            f"• **Library:** `discord.py` (v{discord.__version__})\n"
+            "• **Language:** `Python 3.14.3` (Dedicated Oracle VM)\n\n"
+            "*Use `$help` to explore all my capabilities.*"
         )
+        await ctx.send(msg)
 
-        if guild.icon:
-            embed.set_thumbnail(url=guild.icon.url)
-
-        embed.add_field(name="📛 Name", value=guild.name, inline=True)
-        embed.add_field(name="👑 Owner", value=guild.owner, inline=True)
-        embed.add_field(name="👥 Members", value=guild.member_count, inline=True)
-        embed.add_field(name="💬 Channels", value=len(guild.channels), inline=True)
-        embed.add_field(name="🎭 Roles", value=len(guild.roles), inline=True)
-        embed.add_field(name="📅 Created", value=guild.created_at.strftime("%d %b %Y"), inline=True)
-
-        footer_icon = self.bot.user.display_avatar.url if self.bot.user.avatar else None
-        embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=footer_icon)
-
-        await ctx.send(embed=embed)
-
-
+    @commands.command(name="me", aliases=["whoami", "profile"], help="Shows information about you")
+    async def profile(self, ctx, member: discord.Member = None):
+        """Your TaskForge Discord Profile"""
+        user = member or ctx.author
         
+        # Format roles (excluding @everyone) and use .name for "mentions off"
+        roles = [role.name for role in user.roles if role != ctx.guild.default_role]
+        role_str = ", ".join(roles) if roles else "No roles assigned"
+
+        msg = (
+            f"### 👤 {user.display_name}'s Profile\n"
+            f"**User:** {user.name} | **ID:** `{user.id}`\n\n"
+            "**Server Activity:**\n"
+            f"• **Joined Server:** <t:{int(user.joined_at.timestamp())}:R>\n"
+            f"• **Account Created:** <t:{int(user.created_at.timestamp())}:R>\n"
+            f"• **Top Role:** {user.top_role.name}\n"
+            f"• **Roles:** {role_str}"
+        )
+        await ctx.send(msg)
+
+    @commands.command(name="server", aliases=["serverinfo", "guild"], help="Shows detailed information about the server")
+    async def server(self, ctx):
+        """Server statistics and information"""
+        guild = ctx.guild
+        
+        # Try to get the owner name safely without mention
+        owner = guild.owner or await guild.fetch_member(guild.owner_id)
+        owner_name = owner.name if owner else "Unknown Owner"
+        
+        # Note: online_members requires members intent
+        online_members = len([m for m in guild.members if m.status != discord.Status.offline])
+        
+        msg = (
+            f"### 🌐 Server Information: {guild.name}\n"
+            f"**Owner:** {owner_name} | **Created:** <t:{int(guild.created_at.timestamp())}:D>\n\n"
+            "**Stats:**\n"
+            f"• **Members:** {guild.member_count} ({online_members} online)\n"
+            f"• **Channels:** {len(guild.channels)} (Text: {len(guild.text_channels)} | Voice: {len(guild.voice_channels)})\n"
+            f"• **Roles:** {len(guild.roles)} total (Mentions Disabled)\n"
+            f"• **Server ID:** `{guild.id}`"
+        )
+        await ctx.send(msg)
+
 async def setup(bot):
     await bot.add_cog(Info(bot))

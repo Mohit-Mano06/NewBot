@@ -36,6 +36,7 @@ if not TOKEN:
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
+intents.members = True
 print("Intents configured.")
 
 ALLOWED_CHANNEL_ID = 1469612261827022949
