@@ -35,7 +35,6 @@
 - **Language**: Python 3.12+ (Optimized for 3.14)
 - **AI Engine**: Mistral AI (Small & Large models)
 - **Audio Engine**: FFmpeg (Local binary supported)
-- **Hosting**: Supports 24/7 uptime with `keep_alive.py` logic.
 
 ---
 

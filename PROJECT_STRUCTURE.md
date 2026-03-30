@@ -12,7 +12,6 @@ This document outlines the folder structure and the purpose of each file in the 
 | `requirements.txt` | Python library dependencies. |
 | `README.md` | Setup instructions and feature overview. |
 | `logger.py` | Specialized logging utility for moderation events. |
-| `keep_alive.py` | Flask utility to keep the bot running on hosting platforms. |
 | `start.bat` | Windows batch script to launch the bot. |
 
 ---

@@ -172,9 +172,6 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
         if not interaction.response.is_done():
             await interaction.response.send_message("An unexpected error occurred.", ephemeral=True)
 
-## ==== STARTUP ==== ##
-from keep_alive import keep_alive
-keep_alive()
 
 print("Waiting 3 seconds for system to settle...")
 import time
