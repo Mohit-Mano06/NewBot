@@ -30,7 +30,6 @@
 
 ## ℹ️ Bot Information
 
-- **Developers**: [Mohit](https://github.com/Mohit-Mano06) (Main Developer) & Anis
 - **Library**: `discord.py` (2.3+)
 - **Language**: Python 3.12+ (Optimized for 3.14)
 - **AI Engine**: Mistral AI (Small & Large models)
