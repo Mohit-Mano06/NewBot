@@ -1,6 +1,6 @@
 # TaskForge-Bot 🤖 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**TaskForge** is a high-performance, AI-integrated Discord bot built with `discord.py`, developed by **Momo** (Mohit & Anis). It transforms your server into a productive and entertaining hub with advanced AI assistants, high-fidelity music streaming, and smart automation.
+**TaskForge** is a high-performance, AI-integrated Discord bot built with `discord.py`. It transforms your server into a productive and entertaining hub with advanced AI assistants, high-fidelity music streaming, and smart automation.
 
 ---
 
