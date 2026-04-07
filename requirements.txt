@@ -5,7 +5,6 @@ yt-dlp
 python-dotenv
 mistralai
 psutil
-supabase
 aiofiles
 
 #PyNaCl

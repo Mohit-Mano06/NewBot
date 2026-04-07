@@ -11,6 +11,7 @@ import os
 import traceback
 from logger import send_log
 from mistralai.client import Mistral
+import database
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -77,7 +78,7 @@ async def on_ready():
     if hasattr(bot, 'init_done'):
         print(f"Bot reconnected: {bot.user}")
         return
-
+    
     bot.init_done = True
     if not hasattr(bot, 'start_time'):
         bot.start_time = datetime.datetime.now(datetime.timezone.utc)
@@ -99,6 +100,16 @@ async def on_ready():
         await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
     except Exception as e:
         print(f"Warning: Could not send log message: {e}")
+        
+    if database.USE_SUPABASE:
+        try:
+            connected = await database.check_supabase_connection()
+            if connected:
+                print("✅ Supabase REST API connected")
+            else:
+                print("❌ Supabase REST API failed to connect")
+        except Exception as e:
+            print("❌ Supabase error:", e)
 
 @bot.event
 async def setup_hook():
