@@ -5,6 +5,7 @@ from cogs.admin.config import DEV_GUILD_ID, ANNOUNCEMENT_CHANNEL_ID, OWNER_ID
 from mistralai.client import Mistral
 import json
 import os
+import database
 
 
 class Announcement(commands.Cog):
@@ -110,17 +111,7 @@ class Announcement(commands.Cog):
                 "timestamp": str(discord.utils.utcnow())
             }
 
-            os.makedirs("data", exist_ok=True)
-            try:
-                with open("data/versions.json", "r") as f:
-                    file_data = json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                file_data = {"releases": []}
-
-            file_data["releases"].append(data)
-
-            with open("data/versions.json", "w") as f:
-                json.dump(file_data, f, indent=4)
+            await database.save_release(data)
 
             await ctx.send("✅ AI Announcement sent successfully!", delete_after=5)
 
@@ -130,13 +121,9 @@ class Announcement(commands.Cog):
 
     @commands.command()
     async def latest(self, ctx):
-        try:
-            with open("data/versions.json", "r") as f:
-                file_data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        latest_release = await database.get_latest_release()
+        if not latest_release:
             return await ctx.send("❌ No release data found or it's corrupted.", delete_after=5)
-
-        latest_release = file_data["releases"][-1]
 
         # Show AI description if available, else raw message
         description = latest_release.get("ai_description", latest_release["message"])

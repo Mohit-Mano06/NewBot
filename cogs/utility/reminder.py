@@ -1,34 +1,7 @@
 import discord 
 from discord.ext import commands, tasks
-import json
-import os 
 import time
-
-#TODO: FIX THE TIME DELAY OF ~2 SECONDS by reducing calculation time here somehow idk
-
-REMINDER_FILE = "data/reminder.json"
-
-
-# Checking for json file and reading reminders file 
-def load_reminders():
-    if not os.path.exists(REMINDER_FILE):
-        return {"reminders": []}
-    
-    try:
-        with open(REMINDER_FILE, "r") as f:
-            content = f.read().strip()
-            if not content:
-                return {"reminders": []}
-            return json.loads(content)
-    except (json.JSONDecodeError, Exception):
-        # Reset file if corrupted
-        return {"reminders": []}
-
-
-# Saving reminders in json file
-def save_reminders(data):
-    with open(REMINDER_FILE, "w") as f:json.dump(data, f, indent=4)
-
+import database
 
 def parse_time(time_str):
     try: 
@@ -48,6 +21,7 @@ def parse_time(time_str):
 class Reminder(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
+        self.active_reminders = []
         self.check_reminders.start()
 
     @commands.command(help="Set a reminder (e.g., $reminder 10m Take a break)")
@@ -58,10 +32,8 @@ class Reminder(commands.Cog):
             return
         
         trigger_time = int(time.time()) + seconds
-
-        data = load_reminders()
         
-        new_id = len(data["reminders"]) + 1
+        new_id = len(self.active_reminders) + 1
 
         reminder = {
             "id": new_id,
@@ -72,8 +44,8 @@ class Reminder(commands.Cog):
             "status": "pending"
         }
 
-        data["reminders"].append(reminder)
-        save_reminders(data)
+        self.active_reminders.append(reminder)
+        await database.save_reminders(self.active_reminders)
 
         await ctx.send(f"⏰ Reminder set for `{time_input}`: **{message}**")
     
@@ -81,12 +53,10 @@ class Reminder(commands.Cog):
 
     @tasks.loop(seconds = 1)
     async def check_reminders(self):
-        data = load_reminders()
         now = int(time.time())
         updated = False
 
-
-        for reminder in data["reminders"]:
+        for reminder in self.active_reminders:
             if reminder["status"] == "pending" and reminder["trigger_time"] <= now:
                 channel = self.bot.get_channel(reminder["channel_id"])
 
@@ -97,12 +67,13 @@ class Reminder(commands.Cog):
                 updated = True
         
         if updated:
-            data["reminders"] = [r for r in data["reminders"] if r["status"] != "done"]
-            save_reminders(data)
+            self.active_reminders = [r for r in self.active_reminders if r["status"] != "done"]
+            await database.save_reminders(self.active_reminders)
     
     @check_reminders.before_loop
     async def before_check_reminders(self):
         await self.bot.wait_until_ready()
+        self.active_reminders = await database.load_reminders()
 
 
 async def setup(bot):
