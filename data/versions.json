@@ -1,59 +1,80 @@
 {
     "releases": [
         {
-            "version": "0.1.0",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 Added Confession Feature ( $confess {your confession}) \n\u2022 New Announcement feature (this current message for new updates)",
+            "version": "0.1.0",
             "timestamp": "2026-02-27 06:39:31.572410+00:00"
         },
         {
-            "version": "0.1.1",
             "type": "\ud83d\udd27 Patch Update",
             "message": "\u2022 Added major, feature, patch, hotfix release types with reactions \n\u2022 New command ($latest) which fetches the latest version and displays it",
+            "version": "0.1.1",
             "timestamp": "2026-02-27 06:43:38.323203+00:00"
         },
         {
-            "version": "0.1.1",
             "type": "\u26a1 Hotfix",
             "message": "\u2022 Fixed help command not working (Issue with discord embed message limit of 25 lines)",
+            "version": "0.1.1",
             "timestamp": "2026-03-03 07:15:01.711838+00:00"
         },
         {
-            "version": "0.1.1",
             "type": "\ud83d\udd25 Major Release",
             "message": "BOT IS DOWN",
+            "version": "0.1.1",
             "timestamp": "2026-03-10 18:13:12.410141+00:00"
         },
         {
-            "version": "0.1.2",
             "type": "\ud83d\udd27 Patch Update",
             "message": "\u2022 Fixed issue with bot not playing music and having a seizure joining the voice channel (PyNaCl library has been removed and davey{new library for voice channel for newer discord.py version})",
+            "version": "0.1.2",
             "timestamp": "2026-03-11 12:18:17.784142+00:00"
         },
         {
-            "version": "0.1.3",
             "type": "\u2728 New Feature",
             "message": "\u2022 Added new feature that when the bot goes offline, it sends a message \"Bot Offline\" before terminating the process (check #custom-bot for the latest status of bot)",
+            "version": "0.1.3",
             "timestamp": "2026-03-12 09:04:00.146310+00:00"
         },
         {
-            "version": "0.2",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 Added AI \ud83c\udfa7 DJ Feature",
+            "version": "0.2",
             "timestamp": "2026-03-13 12:40:43.019828+00:00"
         },
         {
-            "version": "0.3",
             "type": "\ud83d\udd25 Major Release",
             "message": "\u2022 TaskForge can now talk with Tamabot (Some intense rivalry between bots now)",
+            "version": "0.3",
             "timestamp": "2026-03-13 16:13:57.059428+00:00"
         },
         {
-            "version": "0.3.5",
             "type": "\u2728 New Feature",
             "message": "\u2022  Versioning has been rewinded to 0.3 ~ onwards\n\u2022 New help command system (with pages and buttons and no embeds for cleaner reading)",
-            "ai_description": "Hey everyone! \ud83c\udf89 We\u2019ve just overhauled how you get help with **TaskForge**\u2014it\u2019s now way cleaner and easier to navigate.\n\nWe rewound versioning to **0.3** so you can see all the updates at a glance, and the new **help command** (`!help`) now uses pages with buttons instead of clunky embeds. No more scrolling through walls of text\u2014just quick, organized info.\n\nGive it a try! Let us know what you think. \ud83d\udc40",
-            "timestamp": "2026-03-24 07:52:36.585409+00:00"
+            "version": "0.3.5",
+            "timestamp": "2026-03-24 07:52:36.585409+00:00",
+            "ai_description": "Hey everyone! \ud83c\udf89 We\u2019ve just overhauled how you get help with **TaskForge**\u2014it\u2019s now way cleaner and easier to navigate.\n\nWe rewound versioning to **0.3** so you can see all the updates at a glance, and the new **help command** (`!help`) now uses pages with buttons instead of clunky embeds. No more scrolling through walls of text\u2014just quick, organized info.\n\nGive it a try! Let us know what you think. \ud83d\udc40"
+        },
+        {
+            "type": "\ud83d\udd25 Major Release",
+            "message": "- Added Supabase connection for database integration with future updates",
+            "version": "0.3.7",
+            "timestamp": "2026-04-10 14:36:49.490384+00:00",
+            "ai_description": "We\u2019ve just dropped a **huge** upgrade that\u2019ll change how TaskForge works under the hood\u2014and that means better stuff for you down the line!\n\nBy switching to **Supabase**, we\u2019re building a rock-solid foundation for future features, faster performance, and smoother reliability. Think of it like upgrading your server\u2019s backbone\u2014you won\u2019t notice the change today, but everything will run *way* smoother tomorrow.\n\nStay tuned for what\u2019s coming\u2014this is just the start! \ud83d\ude80"
+        },
+        {
+            "type": "\ud83d\udd25 Major Release",
+            "message": "- Added Supabase connection for database integration with future updates",
+            "version": "0.3.7",
+            "timestamp": "2026-04-10 14:39:05.108342+00:00",
+            "ai_description": "We just hit a big milestone\u2014TaskForge is now fully connected to Supabase! This opens the door for even more powerful features and customization in the future. Stay tuned for what\u2019s coming next! \ud83d\ude80"
+        },
+        {
+            "version": "0.3.7",
+            "type": "\u2728 New Feature",
+            "message": "Added Supabase connection for database integration with future updates",
+            "ai_description": "We just added **Supabase** as our new database backend\u2014this unlocks some exciting features coming soon, like faster syncs and better reliability. No changes today, but stay tuned for what\u2019s next! \ud83d\ude80",
+            "timestamp": "2026-04-10 14:39:28.264350+00:00"
         }
     ]
 }

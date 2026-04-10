@@ -120,7 +120,7 @@ async def get_latest_release():
         return None
 
 async def save_release(release_data: dict):
-    """Async saves a new release to Supabase or JSON"""
+    """Async saves a new release to Supabase or JSON, removing duplicates"""
     # Fetch existing from wherever we are loading it
     file_data = {"releases": []}
     
@@ -138,7 +138,12 @@ async def save_release(release_data: dict):
             
     if "releases" not in file_data:
         file_data["releases"] = []
-        
+    
+    # Remove any existing entries with the same version (keep latest only)
+    new_version = release_data.get("version")
+    if new_version:
+        file_data["releases"] = [r for r in file_data["releases"] if r.get("version") != new_version]
+    
     file_data["releases"].append(release_data)
 
     if USE_SUPABASE:

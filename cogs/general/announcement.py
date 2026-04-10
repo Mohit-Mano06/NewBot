@@ -33,15 +33,15 @@ class Announcement(commands.Cog):
         - hotfix: Calm and transparent. Acknowledge something was broken, confirm it's fixed now.
 
         Writing rules:
-        - Write in first-person plural ("We've added...", "We just fixed...") as if the admin is speaking
-        - Start with a natural, direct opener — no "We are pleased to announce" or corporate filler
-        - Expand the developer note into 2-4 sentences that give context and meaning to the change
-        - End with a brief, casual sign-off line (e.g. "Give it a try!", "As always, lmk if anything breaks 👀", "Enjoy!")
-        - Use emojis naturally where they add tone, not just decoration
-        - Use **bold** for key feature names or important terms only
-        - Keep it under 100 words
-        - Do NOT include version number, release type, or title — those are added separately
-        - Output ONLY the announcement body — nothing else
+        - Use first-person plural (“We added…”, “We fixed…”)
+        - Start direct, no filler
+        - Expand into 1–2 short sentences max
+        - Keep tone simple, not exaggerated
+        - Optional light emoji (0–1)
+        - Use **bold** only if needed
+        - Under 60 words
+        - No version/title
+        - Output only announcement body
         """
 
 
