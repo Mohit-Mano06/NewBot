@@ -3,7 +3,8 @@ from discord.ext import commands
 import json
 import os 
 import time
-from .reminder import load_reminders, save_reminders, parse_time
+from database import load_reminders, save_reminders
+from .reminder import parse_time
 
 REMINDER_FILE = "data/reminder.json"
 
@@ -24,7 +25,7 @@ class VCReminder(commands.Cog):
             return
         
         trigger_time = int(time.time()) + seconds
-        data = load_reminders()
+        data = await load_reminders()
         new_id = len(data["reminders"]) + 1
 
         reminder = {
@@ -39,7 +40,7 @@ class VCReminder(commands.Cog):
         }
 
         data["reminders"].append(reminder)
-        save_reminders(data)
+        await save_reminders(data)
         await ctx.send(f"⏰ VC Reminder set for `{time_input}` in {ctx.author.voice.channel.name}: **{message}**")
 
 

@@ -13,9 +13,6 @@ from logger import send_log
 from mistralai.client import Mistral
 import database
 
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 # Load environment variables
 try:
     from dotenv import load_dotenv

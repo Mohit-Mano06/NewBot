@@ -10,6 +10,7 @@ cogs/setupguide.py
 
 warnings.json
 r6_tracker.py
+.github
 
 
 data/reminder.json
