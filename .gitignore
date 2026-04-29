@@ -6,7 +6,8 @@ cogs/__pycache__
 config_example.py
 venv
 cogs/setupguide.py
- 
+economy_schema.sql
+
 
 warnings.json
 r6_tracker.py

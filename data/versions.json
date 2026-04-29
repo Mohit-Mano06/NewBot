@@ -70,11 +70,18 @@
             "ai_description": "We just hit a big milestone\u2014TaskForge is now fully connected to Supabase! This opens the door for even more powerful features and customization in the future. Stay tuned for what\u2019s coming next! \ud83d\ude80"
         },
         {
-            "version": "0.3.7",
             "type": "\u2728 New Feature",
             "message": "Added Supabase connection for database integration with future updates",
-            "ai_description": "We just added **Supabase** as our new database backend\u2014this unlocks some exciting features coming soon, like faster syncs and better reliability. No changes today, but stay tuned for what\u2019s next! \ud83d\ude80",
-            "timestamp": "2026-04-10 14:39:28.264350+00:00"
+            "version": "0.3.7",
+            "timestamp": "2026-04-10 14:39:28.264350+00:00",
+            "ai_description": "We just added **Supabase** as our new database backend\u2014this unlocks some exciting features coming soon, like faster syncs and better reliability. No changes today, but stay tuned for what\u2019s next! \ud83d\ude80"
+        },
+        {
+            "version": "0.3.8",
+            "type": "\u2728 New Feature",
+            "message": "Added Leaderboard stats for number of messages in the server (context limit is 1000 messages per channel as the server is too big, but will sync for whole history of server in future)",
+            "ai_description": "We just added **leaderboard stats** for message counts\u2014see who\u2019s been most active in the server! Right now, it syncs up to 1,000 recent messages per channel, but we\u2019ll expand that to full history soon. \ud83d\udcca",
+            "timestamp": "2026-04-29 10:35:55.993832+00:00"
         }
     ]
 }

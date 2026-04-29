@@ -2,6 +2,7 @@ import json
 import os
 import aiofiles
 import aiohttp
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -154,3 +155,193 @@ async def save_release(release_data: dict):
     os.makedirs(os.path.dirname(VERSIONS_FILE), exist_ok=True)
     async with aiofiles.open(VERSIONS_FILE, "w") as f:
         await f.write(json.dumps(file_data, indent=4))
+
+# ==========================================
+# ECONOMY & SHOP (SUPABASE ONLY)
+# ==========================================
+
+async def get_balance(user_id: str) -> dict:
+    """Returns {"balance": int, "last_daily": str} for a user."""
+    if not USE_SUPABASE:
+        return {"balance": 0, "last_daily": None}
+    
+    res = await supabase_request("GET", f"user_economy?user_id=eq.{user_id}&select=balance,last_daily")
+    if res and len(res) > 0:
+        return res[0]
+    return {"balance": 0, "last_daily": None}
+
+async def update_balance(user_id: str, amount: int, transaction_type: str, description: str = ""):
+    """Changes user balance by `amount` (can be negative) and logs transaction."""
+    if not USE_SUPABASE:
+        return False
+        
+    current = await get_balance(user_id)
+    new_balance = current["balance"] + amount
+
+    # Upsert new balance
+    payload = {
+        "user_id": user_id,
+        "balance": new_balance
+    }
+    if current["last_daily"]:
+        payload["last_daily"] = current["last_daily"]
+
+    await supabase_request("POST", "user_economy", data=payload, extra_headers={"Prefer": "resolution=merge-duplicates"})
+    
+    # Log transaction
+    log_payload = {
+        "user_id": user_id,
+        "amount": amount,
+        "type": transaction_type,
+        "description": description
+    }
+    await supabase_request("POST", "transactions", data=log_payload)
+    return True
+
+async def update_last_daily(user_id: str):
+    """Sets last_daily to current time."""
+    if not USE_SUPABASE:
+        return False
+    current = await get_balance(user_id)
+    payload = {
+        "user_id": user_id,
+        "balance": current["balance"],
+        "last_daily": datetime.now(timezone.utc).isoformat()
+    }
+    await supabase_request("POST", "user_economy", data=payload, extra_headers={"Prefer": "resolution=merge-duplicates"})
+    return True
+
+async def get_shop_items() -> list:
+    if not USE_SUPABASE:
+        return []
+    res = await supabase_request("GET", "shop_items?select=*")
+    return res if res else []
+
+async def get_inventory(user_id: str) -> list:
+    """Gets inventory joined with shop_items."""
+    if not USE_SUPABASE:
+        return []
+    res = await supabase_request("GET", f"user_inventory?user_id=eq.{user_id}&select=id,quantity,item_id,shop_items(*)")
+    return res if res else []
+
+async def add_item_to_inventory(user_id: str, item_id: int, quantity: int = 1):
+    if not USE_SUPABASE:
+        return False
+        
+    res = await supabase_request("GET", f"user_inventory?user_id=eq.{user_id}&item_id=eq.{item_id}&select=id,quantity")
+    if res and len(res) > 0:
+        new_quantity = res[0]["quantity"] + quantity
+        inv_id = res[0]["id"]
+        # Update existing
+        await supabase_request("PATCH", f"user_inventory?id=eq.{inv_id}", data={"quantity": new_quantity})
+    else:
+        # Insert new
+        payload = {
+            "user_id": user_id,
+            "item_id": item_id,
+            "quantity": quantity
+        }
+        await supabase_request("POST", "user_inventory", data=payload)
+    return True
+
+# ==========================================
+# LEADERBOARD (SUPABASE ONLY)
+# ==========================================
+
+async def update_leaderboard_stat(guild_id: str, user_id: str, stat_type: str, amount: int):
+    """Updates a user's leaderboard stat (messages_count, vc_time, commands_used)."""
+    if not USE_SUPABASE:
+        return False
+        
+    # First, fetch existing stats
+    res = await supabase_request("GET", f"leaderboard?guild_id=eq.{guild_id}&user_id=eq.{user_id}&select=messages_count,vc_time,commands_used")
+    
+    current_stats = {
+        "messages_count": 0,
+        "vc_time": 0,
+        "commands_used": 0
+    }
+    
+    exists = False
+    if res and len(res) > 0:
+        current_stats.update(res[0])
+        exists = True
+        
+    current_stats[stat_type] += amount
+    
+    # Payload
+    payload = {
+        "guild_id": str(guild_id),
+        "user_id": str(user_id),
+        "messages_count": current_stats["messages_count"],
+        "vc_time": current_stats["vc_time"],
+        "commands_used": current_stats["commands_used"]
+    }
+    
+    if exists:
+        # Explicit PATCH update using the composite key
+        await supabase_request("PATCH", f"leaderboard?guild_id=eq.{guild_id}&user_id=eq.{user_id}", data=payload)
+    else:
+        # Explicit POST insert
+        await supabase_request("POST", "leaderboard", data=payload)
+        
+    return True
+
+async def update_channel_stat(guild_id: str, channel_id: str, amount: int):
+    """Increments the message count for a specific channel."""
+    if not USE_SUPABASE:
+        return False
+        
+    res = await supabase_request("GET", f"channel_stats?guild_id=eq.{guild_id}&channel_id=eq.{channel_id}&select=messages_count")
+    
+    current_count = 0
+    exists = False
+    if res and len(res) > 0:
+        current_count = res[0].get("messages_count", 0)
+        exists = True
+        
+    payload = {
+        "guild_id": str(guild_id),
+        "channel_id": str(channel_id),
+        "messages_count": current_count + amount
+    }
+    
+    if exists:
+        await supabase_request("PATCH", f"channel_stats?guild_id=eq.{guild_id}&channel_id=eq.{channel_id}", data=payload)
+    else:
+        await supabase_request("POST", "channel_stats", data=payload)
+    return True
+
+async def get_top_channels(guild_id: str, limit: int = 10) -> list:
+    """Gets the most active channels in a guild."""
+    if not USE_SUPABASE:
+        return []
+    res = await supabase_request("GET", f"channel_stats?guild_id=eq.{guild_id}&select=channel_id,messages_count&order=messages_count.desc&limit={limit}")
+    return res if res else []
+
+async def get_top_leaderboard(guild_id: str, stat_type: str, limit: int = 10) -> list:
+    """Gets top users for a specific stat in a guild."""
+    if not USE_SUPABASE:
+        return []
+    
+    res = await supabase_request("GET", f"leaderboard?guild_id=eq.{guild_id}&select=user_id,{stat_type}&order={stat_type}.desc&limit={limit}")
+    return res if res else []
+
+async def bulk_update_leaderboard_stats(guild_id: str, user_stats: dict, channel_stats: dict = None):
+    """
+    Upserts multiple users' and channels' message stats at once.
+    """
+    if not USE_SUPABASE:
+        return False
+        
+    # Update Users
+    for user_id, stats in user_stats.items():
+        if "messages_count" in stats:
+            await update_leaderboard_stat(guild_id, user_id, "messages_count", stats["messages_count"])
+            
+    # Update Channels
+    if channel_stats:
+        for channel_id, count in channel_stats.items():
+            await update_channel_stat(guild_id, channel_id, count)
+            
+    return True
