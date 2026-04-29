@@ -20,6 +20,13 @@
 - **Intelligent Queueing**: Full support for adding, skipping, pausing, and clearing track queues.
 - **Voice Stats**: Monitor your voice connection quality in real-time with `$vcstat`.
 
+### 📊 Advanced Server Leaderboards (Powered by Supabase)
+
+- **Comprehensive Tracking**: Real-time activity monitoring for messages sent, voice channel duration, and bot command usage.
+- **Channel Analytics**: Insights into which channels are the most active within your server.
+- **Persistent Data**: High-speed data persistence using Supabase, ensuring stats are never lost during bot restarts.
+- **Historical Sync**: Admin tools to scrape and import past message history into the leaderboard.
+
 ### ⚡ Smart Productivity & Server Control
 
 - **Dynamic Reminders**: Set personal or voice-channel wide alerts (`$reminder`, `$vcreminder`) with flexible time formats.
@@ -81,6 +88,14 @@ All commands use the `$` prefix.
 - `$vcstat`: Detailed voice connection quality and stats.
 - `$connect` / `$disconnect`: Manage the bot's voice presence.
 
+### 📊 Activity Leaderboards
+
+- `$leaderboard messages` (alias: `$lb msg`): View the top 10 most active chatters.
+- `$leaderboard vc`: See who has spent the most time in voice channels.
+- `$leaderboard commands` (alias: `$lb cmds`): Track the most active bot command users.
+- `$leaderboard channels`: Rank your server's channels by total message volume.
+- `$leaderboard sync [limit]`: (Admin Only) Scrape message history to populate stats. Use `0` for full history.
+
 ### 📩 Social & Fun
 
 - `$confess <message>`: Send an anonymous message to the designated confession channel.
@@ -116,6 +131,9 @@ All commands use the `$` prefix.
    ```env
    TOKEN=your_discord_bot_token
    MISTRAL_TOKEN=your_mistral_api_key
+   USE_SUPABASE=True
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_key
    ```
 
 4. **FFmpeg Setup**:
