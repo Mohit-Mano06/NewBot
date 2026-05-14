@@ -8,6 +8,19 @@ class AIChat(commands.Cog):
         self.bot = bot
         self.client = mistral_client
         self.user_memory = {}
+        self.bot_identity = self._load_identity()
+
+    def _load_identity(self):
+        """Load bot identity from data/identity.md"""
+        identity_path = os.path.join("data", "identity.md")
+        try:
+            if os.path.exists(identity_path):
+                with open(identity_path, "r", encoding="utf-8") as f:
+                    return f.read()
+            return "TaskForge is a high-performance Discord bot developed by Mohit."
+        except Exception as e:
+            print(f"Error loading identity: {e}")
+            return "TaskForge is a high-performance Discord bot developed by Mohit."
 
     def get_system_message(self, display_name):
         return {
@@ -17,6 +30,10 @@ class AIChat(commands.Cog):
                 f"You are talking to {display_name}. "
                 "You talk like a real human — casual, fun, and interactive. "
                 "You actively keep conversations going instead of giving short answers.\n\n"
+
+                "### YOUR IDENTITY & TECHNICAL SPECS:\n"
+                "Use the following information to answer questions about yourself. Do NOT hallucinate other details:\n"
+                f"{self.bot_identity}\n\n"
 
                 "Your behavior rules:\n"
                 "- Always respond in a conversational tone (like chatting with a friend)\n"
@@ -81,6 +98,14 @@ class AIChat(commands.Cog):
         """Reset your conversation memory"""
         self.user_memory.pop(ctx.author.id, None)
         await ctx.send("🧹 Chat history cleared!")
+
+    # Reload Bot Identity
+    @commands.command(name="reloadidentity", help="Reload bot identity from identity.md (Admin only)")
+    @commands.is_owner()
+    async def reload_identity(self, ctx):
+        """Reload the bot's identity from the markdown file"""
+        self.bot_identity = self._load_identity()
+        await ctx.send("✅ **Bot identity reloaded successfully!**")
 
     # Optional: mention-based chatting (no command)
     @commands.Cog.listener()
