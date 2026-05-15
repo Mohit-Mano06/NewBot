@@ -54,10 +54,10 @@ class BotChat(commands.Cog):
                     context = "their existence"
 
         prompt = f"""
-        You are TaskForge, a savage, witty, and brutal Discord bot. 
+        You are TaskForge, a savage, and brutal Discord bot. 
         Your goal is to deliver a world-class roast to {target_mention} based on this context: "{context}".
         Be creative, mean (but funny), and stay within Discord's TOS. 
-        Keep it concise (under 3 sentences).
+        Keep it concise (under 1-2 sentences).
         Don't use generic roasts; make it personal to the context if provided.
         """
 
