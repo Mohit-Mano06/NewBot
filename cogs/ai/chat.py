@@ -31,47 +31,46 @@ class BotChat(commands.Cog):
                 print(f"Error in chat command: {e}")
 
     @commands.command(help="Roast someone or yourself!")
-    async def roast(self, ctx, *, input_text: str = None):
+    async def roast(self, ctx, target: discord.Member = None, *, context: str = None):
         """Roast someone or yourself!"""
-        # Default target is the author
-        target_mention = ctx.author.mention
-        context = input_text if input_text else "their existence"
-        
-        # Check if someone was mentioned in the command
-        if ctx.message.mentions:
-            mentioned_user = ctx.message.mentions[0]
-            
-            # If they mentioned the bot itself, roast the author
-            if mentioned_user == self.bot.user:
+        try:
+            # Determine who to roast
+            if target is None:
+                # No target mentioned, roast the author
                 target_mention = ctx.author.mention
-                context = "the audacity to try and roast me"
+                roast_context = context if context else "their existence"
+            elif target == self.bot.user:
+                # User tried to roast the bot, flip it on the author
+                target_mention = ctx.author.mention
+                roast_context = f"the audacity to try and roast me with this context: {context}" if context else "the audacity to try and roast me"
             else:
-                # Roast the mentioned user
-                target_mention = mentioned_user.mention
-                # Remove the mention from the context string
-                context = input_text.replace(mentioned_user.mention, "").strip()
-                if not context:
-                    context = "their existence"
+                # Roast the target member
+                target_mention = target.mention
+                roast_context = context if context else "their existence"
 
-        prompt = f"""
-        You are TaskForge, a savage, and brutal Discord bot. 
-        Your goal is to deliver a world-class roast to {target_mention} based on this context: "{context}".
-        Be creative, mean (but funny), and stay within Discord's TOS. 
-        Keep it concise (under 1-2 sentences).
-        Don't use generic roasts; make it personal to the context if provided.
-        """
+            prompt = f"""
+            You are TaskForge, a savage and brutal Discord bot. 
+            Your goal is to deliver a world-class roast to {target_mention} based on this context: "{roast_context}".
+            Be creative, mean (but funny), and stay within Discord's TOS. 
+            Keep it concise (1-2 sentences).
+            Don't use generic roasts; make it personal to the context if provided.
+            """
 
-        async with ctx.typing():
-            try:
-                response = await self.mistral.chat.complete_async(
-                    model="mistral-small-latest",
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                roast = response.choices[0].message.content
-                await ctx.send(roast)
-            except Exception as e:
-                await ctx.send("I'm too tired to roast you right now... check back later.")
-                print(f"Error in roast command: {e}")
+            async with ctx.typing():
+                try:
+                    response = await self.mistral.chat.complete_async(
+                        model="mistral-small-latest",
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    roast = response.choices[0].message.content
+                    await ctx.send(roast)
+                except Exception as ai_err:
+                    await ctx.send("Mistral is being a snowflake and won't help me roast you right now.")
+                    print(f"AI Error: {ai_err}")
+
+        except Exception as cmd_err:
+            print(f"Command Error in roast: {cmd_err}")
+            await ctx.send("Something went wrong with the roast gears.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -80,7 +79,9 @@ class BotChat(commands.Cog):
             return
 
         # Check if someone pinged the bot directly (without a command)
-        if self.bot.user.mentioned_in(message) and not message.content.startswith(tuple(await self.bot.get_prefix(message))):
+        # We check if the bot is mentioned and the message doesn't start with the prefix
+        prefix = "$" # Hardcoded for safety or we could fetch it
+        if self.bot.user.mentioned_in(message) and not message.content.startswith(prefix):
             async with message.channel.typing():
                 prompt = f"""
                 You are TaskForge, a savage and brutal Discord bot. 
