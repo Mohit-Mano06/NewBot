@@ -9,6 +9,7 @@ cogs/setupguide.py
 economy_schema.sql
 agents.md
 rich_terminal.py
+bot_logger.py
 
 
 warnings.json
