@@ -42,22 +42,19 @@ class SetupGuide(commands.Cog):
         )
 
         embed2.add_field(
-            name="2️⃣ Create Virtual Environment",
+            name="2️⃣ Setup Environment",
             value=(
+                "**Recommended: Using `uv`**\n"
+                "```bash\n"
+                "uv init\n"
+                "uv sync\n"
+                "```\n"
+                "**Alternative: Standard Python**\n"
                 "```bash\n"
                 "python -m venv venv\n"
+                ".\\venv\\Scripts\\activate\n"
+                "pip install -r requirements.txt\n"
                 "```"
-            ),
-            inline=False
-        )
-
-        embed2.add_field(
-            name="Activate Environment",
-            value=(
-                "**Windows**\n"
-                "```bash\n.\\venv\\Scripts\\activate\n```\n"
-                "**Mac/Linux**\n"
-                "```bash\nsource venv/bin/activate\n```"
             ),
             inline=False
         )
@@ -68,14 +65,13 @@ class SetupGuide(commands.Cog):
         )
 
         embed3.add_field(
-            name="Install Dependencies",
-            value="```bash\npip install -r requirements.txt\n```",
-            inline=False
-        )
-
-        embed3.add_field(
             name="Run Bot",
-            value="```bash\npython main.py\n```",
+            value=(
+                "**With `uv`:**\n"
+                "```bash\nuv run python main.py\n```\n"
+                "**Standard:**\n"
+                "```bash\npython main.py\n```"
+            ),
             inline=False
         )
 

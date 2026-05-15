@@ -50,7 +50,8 @@ All commands use the `$` prefix.
 
 ### 🤖 AI Assistant & Insights
 
-- `$chat <message>`: Chat with TaskForge AI (uses memory).
+- `$chat <message>`: Chat with TaskForge AI Assistant (with long-term memory).
+- `$talk <message>`: Get a witty, sassy, or funny AI reply (short & sassy).
 - `$resetchat`: Clear your AI conversation history.
 - `$explain <level> <topic>`: AI explains a topic. Levels: `1`, `5`, `10`, `engineer`.
 - `$obsessions`: Analyzes recent chat history to find trending server topics.
@@ -120,6 +121,11 @@ All commands use the `$` prefix.
 
 2. **Install dependencies**:
 
+   TaskForge-Bot uses `uv` for lightning-fast dependency management.
+   ```bash
+   uv sync
+   ```
+   *Alternatively, if you don't have `uv`:*
    ```bash
    pip install -r requirements.txt
    ```
