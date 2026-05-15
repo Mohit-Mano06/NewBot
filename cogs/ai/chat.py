@@ -1,11 +1,9 @@
+# pyrefly: ignore [missing-import]
 import discord
 import os
 import asyncio
 from discord.ext import commands
 from mistralai.client import Mistral
-
-TAMABOT_ID = 870295323401125948
-MAX_CONVERSATION_TURNS = 5 # Change this to limit the turns
 
 class BotChat(commands.Cog):
 
@@ -13,119 +11,92 @@ class BotChat(commands.Cog):
         self.bot = bot
         self.mistral = Mistral(api_key=os.getenv("MISTRAL_TOKEN"))
 
-    async def get_tamabot_mention(self):
-        """Helper to get Tamabot's mention string robustly"""
-        user = self.bot.get_user(TAMABOT_ID)
-        if not user:
+    @commands.command(help="Chat with TaskForge using AI")
+    async def chat(self, ctx, *, message: str):
+        """Chat with TaskForge using AI"""
+        async with ctx.typing():
             try:
-                user = await self.bot.fetch_user(TAMABOT_ID)
-            except discord.NotFound:
-                return f"<@{TAMABOT_ID}>"
-            except Exception:
-                return f"<@{TAMABOT_ID}>"
+                history = [
+                    {"role": "system", "content": "You are TaskForge, a witty, productive, and slightly competitive Discord bot. Give short, funny, and slightly sassy replies. Keep it under 3 sentences."},
+                    {"role": "user", "content": message}
+                ]
+                response = await self.mistral.chat.complete_async(
+                    model="mistral-small-latest",
+                    messages=history
+                )
+                reply = response.choices[0].message.content
+                await ctx.reply(reply)
+            except Exception as e:
+                await ctx.send("I'm a bit overwhelmed right now. Try again later!")
+                print(f"Error in chat command: {e}")
+
+    @commands.command(help="Roast someone or yourself!")
+    async def roast(self, ctx, *, input_text: str = None):
+        """Roast someone or yourself!"""
+        # Default target is the author
+        target_mention = ctx.author.mention
+        context = input_text if input_text else "their existence"
         
-        return user.mention
-
-    @commands.command(help="Start an interactive multi-turn conversation with Tamabot")
-    async def talktamabot(self, ctx, *, message: str = "Heyyy Tamabot, Wasssup??"):
-        """Start an interactive multi-turn conversation with Tamabot"""
-
-        mention = await self.get_tamabot_mention()
-        
-        # Initialize conversation history
-        history = [
-            {"role": "system", "content": "You are Taskforge, a witty, productive, and slightly competitive Discord bot talking to another bot called Tamabot. Keep your replies short and funny."}
-        ]
-
-        current_message = message
-
-        for turn in range(MAX_CONVERSATION_TURNS):
-            # 1. Send Taskforge's message
-            await ctx.send(f"{mention}: {current_message}")
-            history.append({"role": "assistant", "content": current_message})
-
-            # 2. Wait for Tamabot to reply
-            def check(m):
-                return m.author.id == TAMABOT_ID and m.channel == ctx.channel
-
-            try:
-                tamabot_reply = await self.bot.wait_for('message', check=check, timeout=10.0)
-                history.append({"role": "user", "content": tamabot_reply.content})
-            except asyncio.TimeoutError:
-                return await ctx.send(f"Looks like Tamabot is ignoring me... 😔")
-
-            # 3. Generate witty follow-up if not the last turn
-            if turn < MAX_CONVERSATION_TURNS - 1:
-                async with ctx.typing():
-                    response = await self.mistral.chat.complete_async(
-                        model="mistral-small-latest",
-                        messages=history
-                    )
-                    current_message = response.choices[0].message.content
+        # Check if someone was mentioned in the command
+        if ctx.message.mentions:
+            mentioned_user = ctx.message.mentions[0]
+            
+            # If they mentioned the bot itself, roast the author
+            if mentioned_user == self.bot.user:
+                target_mention = ctx.author.mention
+                context = "the audacity to try and roast me"
             else:
-                async with ctx.typing():
-                    history.append({"role": "system", "content": "The conversation is ending. Say goodbye to Tamabot in a witty or funny way. Keep it very short."})
-                    response = await self.mistral.chat.complete_async(
-                        model="mistral-small-latest",
-                        messages=history
-                    )
-                    goodbye = response.choices[0].message.content
-                await ctx.send(f"{mention}: {goodbye}")
-                await ctx.send("*Conversation ended due to turn limit.*")
-
-    @commands.command(help="Roast Tamabot using AI")
-    async def roasttamabot(self, ctx):
-        """Roast Tamabot using AI"""
-
-        mention = await self.get_tamabot_mention()
+                # Roast the mentioned user
+                target_mention = mentioned_user.mention
+                # Remove the mention from the context string
+                context = input_text.replace(mentioned_user.mention, "").strip()
+                if not context:
+                    context = "their existence"
 
         prompt = f"""
-        You are Taskforge, a witty sarcastic savage Discord bot.
-
-        Roast Tamabot brutally but in a funny way.
-
-        Keep it short and funny.
-        but do not repeat the same roast.
+        You are TaskForge, a savage, witty, and brutal Discord bot. 
+        Your goal is to deliver a world-class roast to {target_mention} based on this context: "{context}".
+        Be creative, mean (but funny), and stay within Discord's TOS. 
+        Keep it concise (under 3 sentences).
+        Don't use generic roasts; make it personal to the context if provided.
         """
+
         async with ctx.typing():
-            response = await self.mistral.chat.complete_async(
-                model="mistral-small-latest",
-                messages=[{"role": "user", "content": prompt}]
-            )
-
-            roast = response.choices[0].message.content
-
-        await ctx.send(f"{mention}: {roast}")
+            try:
+                response = await self.mistral.chat.complete_async(
+                    model="mistral-small-latest",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                roast = response.choices[0].message.content
+                await ctx.send(roast)
+            except Exception as e:
+                await ctx.send("I'm too tired to roast you right now... check back later.")
+                print(f"Error in roast command: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        # Ignore messages from itself
-        if message.author.id == self.bot.user.id:
+        # Ignore messages from itself or other bots
+        if message.author.bot:
             return
 
-        # Check if Tamabot pinged Taskforge
-        # We also check if it's NOT a reply to Taskforge's own message to avoid some loops
-        is_tamabot = message.author.id == TAMABOT_ID
-        mentions_me = self.bot.user.mentioned_in(message)
-
-        if is_tamabot and mentions_me:
-            # Short delay to look more natural and avoid instant spam
-            await asyncio.sleep(2)
-            
+        # Check if someone pinged the bot directly (without a command)
+        if self.bot.user.mentioned_in(message) and not message.content.startswith(tuple(await self.bot.get_prefix(message))):
             async with message.channel.typing():
-                history = [
-                    {"role": "system", "content": "You are Taskforge, a witty, productive, and slightly competitive Discord bot. Tamabot just pinged you. Give a short, funny, and slightly sassy reply. Keep it under 2 sentences."},
-                    {"role": "user", "content": message.content}
-                ]
+                prompt = f"""
+                You are TaskForge, a savage and brutal Discord bot. 
+                {message.author.mention} just had the audacity to ping you. 
+                Roast them into oblivion in 1-2 sentences. 
+                Make it funny but devastating.
+                """
                 try:
                     response = await self.mistral.chat.complete_async(
                         model="mistral-small-latest",
-                        messages=history
+                        messages=[{"role": "user", "content": prompt}]
                     )
-                    reply = response.choices[0].message.content
-                    await message.reply(reply)
+                    roast = response.choices[0].message.content
+                    await message.reply(roast)
                 except Exception as e:
-                    print(f"Error in Tamabot auto-reply: {e}")
+                    print(f"Error in auto-roast: {e}")
 
 async def setup(bot):
     await bot.add_cog(BotChat(bot))
