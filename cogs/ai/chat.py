@@ -12,8 +12,8 @@ class BotChat(commands.Cog):
         self.bot = bot
         self.mistral = Mistral(api_key=os.getenv("MISTRAL_TOKEN"))
 
-    @commands.command(help="Chat with TaskForge using AI")
-    async def chat(self, ctx, *, message: str):
+    @commands.command(name="talk", help="Chat with TaskForge using AI")
+    async def talk(self, ctx, *, message: str):
         """Chat with TaskForge using AI"""
         async with ctx.typing():
             try:

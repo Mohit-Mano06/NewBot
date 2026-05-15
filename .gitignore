@@ -4,10 +4,13 @@ discord_bot_env
 __pycache__/
 cogs/__pycache__
 config_example.py
-venv
+.venv
 cogs/setupguide.py
 economy_schema.sql
 agents.md
+
+uv.lock
+pyproject.toml
 
 
 warnings.json

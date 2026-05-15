@@ -9,6 +9,13 @@ import asyncio
 import sys
 import os
 import traceback
+
+# Force UTF-8 encoding for Windows terminal support
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 from logger import send_log
 from mistralai.client import Mistral
 import database
@@ -116,8 +123,6 @@ async def setup_hook():
         "cogs.utility.vcreminder", "cogs.music.player", "cogs.admin.moderation",
         "cogs.social.confession", "cogs.general.announcement", "cogs.general.guide",
         "cogs.music.dj", "cogs.ai.assistant", "cogs.ai.insights", "cogs.system", "cogs.ai.chat", "cogs.general.status",
-        "cogs.economy.economy",
-        "cogs.economy.shop",
         "cogs.leaderboard.leaderboard_tracker",
         "cogs.leaderboard.leaderboard_commands"
     ]

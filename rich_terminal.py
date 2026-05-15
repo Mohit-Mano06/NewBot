@@ -10,7 +10,8 @@ from rich.logging import RichHandler
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.panel import Panel
 
-console = Console()
+# Initialize rich console with explicit UTF-8 encoding for Windows support
+console = Console(force_terminal=True)
 
 # ── Logging setup ──────────────────────────────────────────────────────────────
 
