@@ -7,6 +7,8 @@ config_example.py
 venv
 cogs/setupguide.py
 economy_schema.sql
+agents.md
+rich_terminal.py
 
 
 warnings.json

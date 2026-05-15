@@ -12,21 +12,22 @@ import traceback
 from logger import send_log
 from mistralai.client import Mistral
 import database
+from bot_logger import log_print, RICH_ENABLED, rich_terminal
 
 # Load environment variables
 try:
     from dotenv import load_dotenv
     load_dotenv()
-    print("Loaded .env file")
+    log_print("Loaded .env file")
 except ImportError:
-    print("dotenv library not found. Ensure it is installed.")
+    log_print("dotenv library not found. Ensure it is installed.", "warning")
 
 TOKEN = os.getenv("TOKEN")
 MISTRAL_API_KEY = os.getenv("MISTRAL_TOKEN")
 
 # Diagnostic logging
-print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
-print(f"Mistral Token retrieved: {'Yes' if MISTRAL_API_KEY else 'No'}")
+log_print(f"Token retrieved: {'Yes' if TOKEN else 'No'}")
+log_print(f"Mistral Token retrieved: {'Yes' if MISTRAL_API_KEY else 'No'}")
 
 if not TOKEN:
     raise ValueError("DISCORD_TOKEN not found! Check your .env file or environment variables")
@@ -35,7 +36,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
 intents.members = True
-print("Intents configured.")
+log_print("Intents configured.")
 
 ALLOWED_CHANNEL_ID = 1469612261827022949
 
@@ -49,7 +50,7 @@ class TaskForgeBot(commands.Bot):
         self.mistral_client = Mistral(api_key=MISTRAL_API_KEY)
 
     async def close(self):
-        print("Shutting down bot...")
+        log_print("Shutting down bot...")
         channel = self.get_channel(ALLOWED_CHANNEL_ID)
         if channel:
             try:
@@ -58,12 +59,12 @@ class TaskForgeBot(commands.Bot):
                         await message.delete()
                 await channel.send("🔴 **Bot is offline**")
             except Exception as e:
-                print(f"Error sending shutdown message: {e}")
+                log_print(f"Error sending shutdown message: {e}", "error")
         
         try:
             await send_log(self, "🔴 **Bot is offline** (Log Channel Message)")
         except Exception as e:
-            print(f"Error sending shutdown log: {e}")
+            log_print(f"Error sending shutdown log: {e}", "error")
 
         await super().close()
 
@@ -73,14 +74,14 @@ bot = TaskForgeBot()
 async def on_ready():
     # Only run this once to avoid rate limits on reconnection
     if hasattr(bot, 'init_done'):
-        print(f"Bot reconnected: {bot.user}")
+        log_print(f"Bot reconnected: {bot.user}")
         return
     
     bot.init_done = True
     if not hasattr(bot, 'start_time'):
         bot.start_time = datetime.datetime.now(datetime.timezone.utc)
     
-    print(f"Logged in as {bot.user} (Initial Setup)")
+    log_print(f"Logged in as {bot.user} (Initial Setup)", "success")
 
     channel = bot.get_channel(ALLOWED_CHANNEL_ID)
     if channel:
@@ -91,26 +92,25 @@ async def on_ready():
 
             await channel.send("🟢 **Bot is online**")
         except Exception as e:
-            print(f"Warning: Could not send startup message: {e}")
+            log_print(f"Warning: Could not send startup message: {e}", "warning")
 
     try:
         await send_log(bot, "🟢 **Bot is online** (Log Channel Message)")
     except Exception as e:
-        print(f"Warning: Could not send log message: {e}")
+        log_print(f"Warning: Could not send log message: {e}", "warning")
         
     if database.USE_SUPABASE:
         try:
             connected = await database.check_supabase_connection()
             if connected:
-                print("✅ Supabase REST API connected")
+                log_print("✅ Supabase REST API connected", "success")
             else:
-                print("❌ Supabase REST API failed to connect")
+                log_print("❌ Supabase REST API failed to connect", "error")
         except Exception as e:
-            print("❌ Supabase error:", e)
+            log_print(f"❌ Supabase error: {e}", "error")
 
 @bot.event
 async def setup_hook():
-    print("Starting setup_hook (loading extensions)...")
     extensions = [
         "cogs.utility.tools", "cogs.general.help", "cogs.general.info", "cogs.utility.reminder",
         "cogs.utility.vcreminder", "cogs.music.player", "cogs.admin.moderation",
@@ -121,13 +121,18 @@ async def setup_hook():
         "cogs.leaderboard.leaderboard_tracker",
         "cogs.leaderboard.leaderboard_commands"
     ]
-    for ext in extensions:
-        try:
-            await bot.load_extension(ext)
-            print(f"✅ Loaded {ext}")
-        except Exception as e:
-            print(f"❌ Failed to load {ext}: {e}")
-    print("setup_hook complete.")
+    
+    if RICH_ENABLED:
+        await rich_terminal.load_extensions_with_ui(bot, extensions)
+    else:
+        print("Starting setup_hook (loading extensions)...")
+        for ext in extensions:
+            try:
+                await bot.load_extension(ext)
+                print(f"✅ Loaded {ext}")
+            except Exception as e:
+                print(f"❌ Failed to load {ext}: {e}")
+        print("setup_hook complete.")
 
 
 #### ====== Deprecated Help Command ====== ####
@@ -181,21 +186,21 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
     elif isinstance(error, discord.app_commands.CheckFailure):
         await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
     else:
-        print(f"Interaction error: {error}")
+        log_print(f"Interaction error: {error}", "error")
         if not interaction.response.is_done():
             await interaction.response.send_message("An unexpected error occurred.", ephemeral=True)
 
 
-print("Waiting 3 seconds for system to settle...")
+log_print("Waiting 3 seconds for system to settle...")
 import time
 time.sleep(3)
 
-print("Attempting to start bot.run()...")
+log_print("Attempting to start bot.run()...")
 try:
     bot.run(TOKEN)
 except KeyboardInterrupt:
-    print("\n[!] Manual shutdown detected.")
+    log_print("\n[!] Manual shutdown detected.", "warning")
 except Exception as e:
-    print(f"FATAL ERROR during bot.run(): {e}")
+    log_print(f"FATAL ERROR during bot.run(): {e}", "error")
     if "1015" in str(e):
-        print("💡 TIP: You are being rate limited by Cloudflare/Discord. Try restarting the Render service or changing the region.")
+        log_print("💡 TIP: You are being rate limited by Cloudflare/Discord. Try restarting the Render service or changing the region.", "warning")

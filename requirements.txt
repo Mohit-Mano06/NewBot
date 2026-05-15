@@ -8,3 +8,4 @@ psutil
 aiofiles
 
 #PyNaCl
+rich

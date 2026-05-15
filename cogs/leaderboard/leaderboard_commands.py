@@ -85,7 +85,7 @@ class LeaderboardCommands(commands.Cog):
         """View the most active channels in the server"""
         async with ctx.typing():
             guild_id = str(ctx.guild.id)
-            top_channels = await database.get_top_channels(guild_id, limit=10)
+            top_channels = await database.get_top_channels(guild_id, limit=54)
             
             if not top_channels:
                 await ctx.send("No channel data available yet.")
