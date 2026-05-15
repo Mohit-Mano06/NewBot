@@ -2,6 +2,7 @@
 import discord
 import os
 import asyncio
+import re
 from discord.ext import commands
 from mistralai.client import Mistral
 
@@ -31,73 +32,77 @@ class BotChat(commands.Cog):
                 print(f"Error in chat command: {e}")
 
     @commands.command(help="Roast someone or yourself!")
-    async def roast(self, ctx, target: discord.Member = None, *, context: str = None):
+    async def roast(self, ctx, *, input_text: str = None):
         """Roast someone or yourself!"""
-        try:
-            # Determine who to roast
-            if target is None:
-                # No target mentioned, roast the author
+        # If the command is triggered, we start typing immediately to show responsiveness
+        async with ctx.typing():
+            try:
+                # 1. Determine the target
                 target_mention = ctx.author.mention
-                roast_context = context if context else "their existence"
-            elif target == self.bot.user:
-                # User tried to roast the bot, flip it on the author
-                target_mention = ctx.author.mention
-                roast_context = f"the audacity to try and roast me with this context: {context}" if context else "the audacity to try and roast me"
-            else:
-                # Roast the target member
-                target_mention = target.mention
-                roast_context = context if context else "their existence"
+                raw_context = input_text if input_text else ""
+                
+                # Check for mentions in the message
+                if ctx.message.mentions:
+                    # Get the first person mentioned that isn't the bot
+                    mentioned_users = [u for u in ctx.message.mentions if u != self.bot.user]
+                    
+                    if not mentioned_users and self.bot.user in ctx.message.mentions:
+                        # User only mentioned the bot
+                        target_mention = ctx.author.mention
+                        raw_context = "trying to roast the bot"
+                    elif mentioned_users:
+                        # Roast the first mentioned user
+                        target_mention = mentioned_users[0].mention
+                        # Clean up the context by removing all mentions
+                        raw_context = re.sub(r'<@!?[0-9]+>', '', raw_context).strip()
+                
+                final_context = raw_context if raw_context else "their overall vibe"
 
-            prompt = f"""
-            You are TaskForge, a savage and brutal Discord bot. 
-            Your goal is to deliver a world-class roast to {target_mention} based on this context: "{roast_context}".
-            Be creative, mean (but funny), and stay within Discord's TOS. 
-            Keep it concise (1-2 sentences).
-            Don't use generic roasts; make it personal to the context if provided.
-            """
+                # 2. Build the prompt
+                prompt = f"""
+                You are TaskForge, a savage and brutal Discord bot. 
+                Your goal is to deliver a world-class roast to {target_mention} based on this context: "{final_context}".
+                Be creative, mean (but funny), and stay within Discord's TOS. 
+                Keep it concise (1-2 sentences).
+                Do NOT include the target's name or mention in your reply; I will handle that.
+                """
 
-            async with ctx.typing():
-                try:
-                    response = await self.mistral.chat.complete_async(
-                        model="mistral-small-latest",
-                        messages=[{"role": "user", "content": prompt}]
-                    )
-                    roast = response.choices[0].message.content
-                    await ctx.send(roast)
-                except Exception as ai_err:
-                    await ctx.send("Mistral is being a snowflake and won't help me roast you right now.")
-                    print(f"AI Error: {ai_err}")
+                # 3. Call the AI
+                response = await self.mistral.chat.complete_async(
+                    model="mistral-small-latest",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                roast_content = response.choices[0].message.content
+                
+                # 4. Send the result with an actual ping
+                await ctx.send(f"{target_mention}, {roast_content}")
 
-        except Exception as cmd_err:
-            print(f"Command Error in roast: {cmd_err}")
-            await ctx.send("Something went wrong with the roast gears.")
+            except Exception as e:
+                print(f"Roast Command Error: {e}")
+                # Try to give some feedback
+                if "1015" in str(e) or "rate limit" in str(e).lower():
+                    await ctx.send("I'm being rate-limited. Even I need a break from roasting you losers.")
+                else:
+                    await ctx.send("I tried to roast you, but the AI cringed so hard it crashed. Try again.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        # Ignore messages from itself or other bots
         if message.author.bot:
             return
 
-        # Check if someone pinged the bot directly (without a command)
-        # We check if the bot is mentioned and the message doesn't start with the prefix
-        prefix = "$" # Hardcoded for safety or we could fetch it
+        # Simple prefix check
+        prefix = "$"
         if self.bot.user.mentioned_in(message) and not message.content.startswith(prefix):
             async with message.channel.typing():
-                prompt = f"""
-                You are TaskForge, a savage and brutal Discord bot. 
-                {message.author.mention} just had the audacity to ping you. 
-                Roast them into oblivion in 1-2 sentences. 
-                Make it funny but devastating.
-                """
                 try:
+                    prompt = f"Roast {message.author.mention} brutally in 1-2 sentences for pinging you. Do not mention them in your reply."
                     response = await self.mistral.chat.complete_async(
                         model="mistral-small-latest",
                         messages=[{"role": "user", "content": prompt}]
                     )
-                    roast = response.choices[0].message.content
-                    await message.reply(roast)
+                    await message.reply(f"{message.author.mention}, {response.choices[0].message.content}")
                 except Exception as e:
-                    print(f"Error in auto-roast: {e}")
+                    print(f"Auto-roast error: {e}")
 
 async def setup(bot):
     await bot.add_cog(BotChat(bot))
