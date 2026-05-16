@@ -85,24 +85,6 @@ class BotChat(commands.Cog):
                 else:
                     await ctx.send("I tried to roast you, but the AI cringed so hard it crashed. Try again.")
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-
-        # Simple prefix check
-        prefix = "$"
-        if self.bot.user.mentioned_in(message) and not message.content.startswith(prefix):
-            async with message.channel.typing():
-                try:
-                    prompt = f"Roast {message.author.mention} brutally in 1-2 sentences for pinging you. Do not mention them in your reply."
-                    response = await self.mistral.chat.complete_async(
-                        model="mistral-small-latest",
-                        messages=[{"role": "user", "content": prompt}]
-                    )
-                    await message.reply(f"{message.author.mention}, {response.choices[0].message.content}")
-                except Exception as e:
-                    print(f"Auto-roast error: {e}")
 
 async def setup(bot):
     await bot.add_cog(BotChat(bot))

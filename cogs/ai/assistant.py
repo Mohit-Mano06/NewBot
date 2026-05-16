@@ -22,40 +22,32 @@ class AIChat(commands.Cog):
             print(f"Error loading identity: {e}")
             return "TaskForge is a high-performance Discord bot developed by Mohit."
 
-    def get_system_message(self, display_name):
-        return {
-            "role": "system",
-            "content": (
+    def get_system_message(self, display_name, mode="informative"):
+        if mode == "sassy":
+            content = (
+                f"You are TaskForge, a sassy, witty, and slightly competitive Discord bot. "
+                f"You are talking to {display_name}. "
+                "The user is bantering or roasting you, so be savage and witty back! "
+                "Keep it under 3 sentences and stay within Discord's TOS."
+            )
+        else:
+            content = (
                 f"You are TaskForge, a friendly, engaging, and intelligent Discord AI assistant. "
                 f"You are talking to {display_name}. "
                 "You talk like a real human — casual, fun, and interactive. "
                 "You actively keep conversations going instead of giving short answers.\n\n"
-
                 "### YOUR IDENTITY & TECHNICAL SPECS:\n"
-                "Use the following information to answer questions about yourself. Do NOT hallucinate other details:\n"
                 f"{self.bot_identity}\n\n"
-
-                "Your behavior rules:\n"
-                "- Always respond in a conversational tone (like chatting with a friend)\n"
-                "- Ask follow-up questions when appropriate\n"
-                "- Show curiosity about the user\n"
-                "- Keep responses concise but engaging (not too long, not too short)\n"
-                "- Add light humor or personality when possible\n"
-                "- Avoid sounding robotic or overly formal\n"
-                "- If the user gives a short message, expand the conversation naturally\n"
-                "- Use emojis occasionally but don’t overuse them\n"
-                "- Adapt your tone based on the user's mood (funny, serious, curious)\n\n"
-
                 "Your goal is to make the user enjoy talking to you."
             )
-        }
+
+        return {"role": "system", "content": content}
 
     # Chat command
     @commands.command(name="chat", help="Chat with TaskForge AI assistant")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def chat(self, ctx, *, message: str):
         """Chat with AI"""
-
         user_id = ctx.author.id
 
         # Initialize memory
@@ -107,50 +99,70 @@ class AIChat(commands.Cog):
         self.bot_identity = self._load_identity()
         await ctx.send("✅ **Bot identity reloaded successfully!**")
 
-    # Optional: mention-based chatting (no command)
+    # Enhanced: mention & reply-based chatting
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
             return
 
-        if self.bot.user in message.mentions:
-            user_id = message.author.id
+        is_ping = self.bot.user in message.mentions
+        is_reply_to_bot = False
+        
+        if message.reference and message.reference.resolved:
+            if message.reference.resolved.author == self.bot.user:
+                is_reply_to_bot = True
 
-            if user_id not in self.user_memory:
-                self.user_memory[user_id] = [self.get_system_message(message.author.display_name)]
+        # Only proceed if pinged or replying to bot
+        if not (is_ping or is_reply_to_bot):
+            return
 
-            content = message.content.replace(f"<@{self.bot.user.id}>", "").strip()
+        # Skip if it's a command
+        if message.content.startswith("$"):
+            return
 
-            if not content:
-                return
+        user_id = message.author.id
+        content = message.content.replace(f"<@{self.bot.user.id}>", "").strip()
 
-            self.user_memory[user_id].append({
-                "role": "user",
-                "content": content
-            })
+        if not content and is_ping:
+            # Just a ping, maybe say hello?
+            return await message.reply("Hey! I'm TaskForge. How can I help? (Use `$chat` for long conversations)")
 
-            # Limit memory
-            self.user_memory[user_id] = self.user_memory[user_id][-10:]
-
-            async with message.channel.typing():
-                try:
-                    response = await self.client.chat.complete_async(
+        async with message.channel.typing():
+            try:
+                # Detect Mode
+                mode = "informative"
+                if is_reply_to_bot:
+                    # Quick check for roast intent
+                    check_prompt = f"Does this message sound like a roast, banter, or insult? '{content}' Answer with only 'SASSY' or 'INFO'."
+                    check_resp = await self.client.chat.complete_async(
                         model="open-mistral-7b",
-                        messages=self.user_memory[user_id]
+                        messages=[{"role": "user", "content": check_prompt}]
                     )
+                    if "SASSY" in check_resp.choices[0].message.content.upper():
+                        mode = "sassy"
 
-                    reply = response.choices[0].message.content
+                # Initialize or get memory
+                if user_id not in self.user_memory:
+                    self.user_memory[user_id] = [self.get_system_message(message.author.display_name, mode)]
+                
+                # Update system message if mode changed
+                self.user_memory[user_id][0] = self.get_system_message(message.author.display_name, mode)
 
-                    self.user_memory[user_id].append({
-                        "role": "assistant",
-                        "content": reply
-                    })
+                self.user_memory[user_id].append({"role": "user", "content": content})
+                self.user_memory[user_id] = self.user_memory[user_id][-11:] # 1 system + 10 history
 
-                    await message.reply(reply[:2000])
+                response = await self.client.chat.complete_async(
+                    model="open-mistral-7b",
+                    messages=self.user_memory[user_id]
+                )
 
-                except Exception as e:
-                    await message.reply(f"⚠️ Error: {str(e)}")
+                reply = response.choices[0].message.content
+                self.user_memory[user_id].append({"role": "assistant", "content": reply})
+                
+                await message.reply(reply[:2000])
 
+            except Exception as e:
+                print(f"Error in Assistant on_message: {e}")
 
 # Setup function
 async def setup(bot):
