@@ -1,5 +1,6 @@
 import discord
 import os
+import re
 from discord.ext import commands
 from mistralai.client import Mistral
 
@@ -9,6 +10,7 @@ class AIChat(commands.Cog):
         self.client = mistral_client
         self.user_memory = {}
         self.bot_identity = self._load_identity()
+        self.message_modes = {}
 
     def _load_identity(self):
         """Load bot identity from data/identity.md"""
@@ -44,7 +46,7 @@ class AIChat(commands.Cog):
         return {"role": "system", "content": content}
 
     # Chat command
-    @commands.command(name="chat", help="Chat with TaskForge AI assistant")
+    @commands.command(name="chat", aliases=["talk"], help="Chat with TaskForge AI assistant")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def chat(self, ctx, *, message: str):
         """Chat with AI"""
@@ -79,10 +81,66 @@ class AIChat(commands.Cog):
                 })
 
                 # Send (Discord limit safe)
-                await ctx.send(reply[:2000])
+                msg = await ctx.send(reply[:2000])
+                self.message_modes[msg.id] = "informative"
 
             except Exception as e:
                 await ctx.send(f"⚠️ Error: {str(e)}")
+
+    @commands.command(help="Roast someone or yourself!")
+    async def roast(self, ctx, *, input_text: str = None):
+        """Roast someone or yourself!"""
+        # If the command is triggered, we start typing immediately to show responsiveness
+        async with ctx.typing():
+            try:
+                # 1. Determine the target
+                target_mention = ctx.author.mention
+                raw_context = input_text if input_text else ""
+                
+                # Check for mentions in the message
+                if ctx.message.mentions:
+                    # Get the first person mentioned that isn't the bot
+                    mentioned_users = [u for u in ctx.message.mentions if u != self.bot.user]
+                    
+                    if not mentioned_users and self.bot.user in ctx.message.mentions:
+                        # User only mentioned the bot
+                        target_mention = ctx.author.mention
+                        raw_context = "trying to roast the bot"
+                    elif mentioned_users:
+                        # Roast the first mentioned user
+                        target_mention = mentioned_users[0].mention
+                        # Clean up the context by removing all mentions
+                        raw_context = re.sub(r'<@!?[0-9]+>', '', raw_context).strip()
+                
+                final_context = raw_context if raw_context else "their overall vibe"
+
+                # 2. Build the prompt
+                prompt = f"""
+                You are TaskForge, a savage and brutal Discord bot. 
+                Your goal is to deliver a world-class roast to {target_mention} based on this context: "{final_context}".
+                Be creative, mean (but funny), and stay within Discord's TOS. 
+                Keep it concise (1-2 sentences).
+                Do NOT include the target's name or mention in your reply; I will handle that.
+                """
+
+                # 3. Call the AI
+                response = await self.client.chat.complete_async(
+                    model="mistral-small-latest",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                roast_content = response.choices[0].message.content
+                
+                # 4. Send the result with an actual ping
+                msg = await ctx.send(f"{target_mention}, {roast_content}")
+                self.message_modes[msg.id] = "sassy"
+
+            except Exception as e:
+                print(f"Roast Command Error: {e}")
+                # Try to give some feedback
+                if "1015" in str(e) or "rate limit" in str(e).lower():
+                    await ctx.send("I'm being rate-limited. Even I need a break from roasting you losers.")
+                else:
+                    await ctx.send("I tried to roast you, but the AI cringed so hard it crashed. Try again.")
 
     # Reset conversation
     @commands.command(name="resetchat", help="Clear your AI chat history")
@@ -132,14 +190,8 @@ class AIChat(commands.Cog):
                 # Detect Mode
                 mode = "informative"
                 if is_reply_to_bot:
-                    # Quick check for roast intent
-                    check_prompt = f"Does this message sound like a roast, banter, or insult? '{content}' Answer with only 'SASSY' or 'INFO'."
-                    check_resp = await self.client.chat.complete_async(
-                        model="open-mistral-7b",
-                        messages=[{"role": "user", "content": check_prompt}]
-                    )
-                    if "SASSY" in check_resp.choices[0].message.content.upper():
-                        mode = "sassy"
+                    replied_msg_id = message.reference.resolved.id
+                    mode = self.message_modes.get(replied_msg_id, "informative")
 
                 # Initialize or get memory
                 if user_id not in self.user_memory:
@@ -159,7 +211,8 @@ class AIChat(commands.Cog):
                 reply = response.choices[0].message.content
                 self.user_memory[user_id].append({"role": "assistant", "content": reply})
                 
-                await message.reply(reply[:2000])
+                msg = await message.reply(reply[:2000])
+                self.message_modes[msg.id] = mode
 
             except Exception as e:
                 print(f"Error in Assistant on_message: {e}")

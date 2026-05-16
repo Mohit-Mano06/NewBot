@@ -115,7 +115,7 @@ async def setup_hook():
         "cogs.utility.tools", "cogs.general.help", "cogs.general.info", "cogs.utility.reminder",
         "cogs.utility.vcreminder", "cogs.music.player", "cogs.admin.moderation",
         "cogs.social.confession", "cogs.general.announcement", "cogs.general.guide",
-        "cogs.music.dj", "cogs.ai.assistant", "cogs.ai.insights", "cogs.system", "cogs.ai.chat", "cogs.general.status",
+        "cogs.music.dj", "cogs.ai.assistant", "cogs.ai.insights", "cogs.system", "cogs.general.status",
         "cogs.leaderboard.leaderboard_tracker",
         "cogs.leaderboard.leaderboard_commands"
     ]

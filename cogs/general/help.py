@@ -89,7 +89,6 @@ class Help(commands.Cog):
             "VCReminder": "Utility",
             "AIChat": "AI Assistant",
             "Insights": "AI Assistant",
-            "Chat": "AI Assistant",
             "AIDJ": "Music",
             "Confession": "Social",
             "Info": "Info",
@@ -117,7 +116,7 @@ class Help(commands.Cog):
             "## 📜 TaskForge Help Menu\n"
             "Welcome to the TaskForge help menu! Use the dropdown below to explore our features.\n\n"
             "🛠️ **Admin** - Commands for moderators\n"
-            "🤖 **AI Assistant** - Talk to TaskForge AI\n"
+            "🤖 **AI Assistant** - Chat normally ($chat/$talk) or get roasted ($roast)\n"
             "🎵 **Music** - Play tunes and manage queues\n"
             "⚙️ **Utility** - Reminders and helpful tools\n"
             "📢 **Social** - Confessions and fun\n"
