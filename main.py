@@ -2,16 +2,18 @@
 # GitHub: https://github.com/Mohit-Mano06/TaskForge-Bot
 # License: MIT
 
-import discord
-from discord.ext import commands
+import os
+import sys
+import time
 import datetime
 import asyncio
-import sys
-import os
 import traceback
-from logger import send_log
+import discord
+from discord.ext import commands
 from mistralai.client import Mistral
+
 import database
+from logger import send_log
 from bot_logger import log_print, RICH_ENABLED, rich_terminal
 
 # Load environment variables
@@ -133,31 +135,6 @@ async def setup_hook():
         print("setup_hook complete.")
 
 
-#### ====== Deprecated Help Command ====== ####
-""""@bot.command(name="help")
-async def help_command(ctx):
-    cog_commands = {}
-
-    for command in bot.commands:
-        if command.hidden:
-            continue
-
-        cog_name = command.cog.qualified_name if command.cog else "General"
-
-        if cog_name not in cog_commands:
-            cog_commands[cog_name] = []
-
-        cog_commands[cog_name].append(command.name)
-
-    message = "**📜 Available Commands**\n\n"
-
-    for cog_name, commands_list in cog_commands.items():
-        message += f"**{cog_name}**\n"
-        message += " | ".join(f"`{cmd}`" for cmd in commands_list)
-        message += "\n\n"
-
-    await ctx.send(message)
-    """
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -190,7 +167,6 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 
 
 log_print("Waiting 3 seconds for system to settle...")
-import time
 time.sleep(3)
 
 log_print("Attempting to start bot.run()...")
@@ -201,4 +177,4 @@ except KeyboardInterrupt:
 except Exception as e:
     log_print(f"FATAL ERROR during bot.run(): {e}", "error")
     if "1015" in str(e):
-        log_print("💡 TIP: You are being rate limited by Cloudflare/Discord. Try restarting the Render service or changing the region.", "warning")
+        log_print("💡 TIP: You are being rate limited by Cloudflare/Discord. Try restarting the service or waiting for sometime", "warning")
